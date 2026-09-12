@@ -4,12 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tianguis Digital — Mapa interactivo</title>
-<!-- Iconos -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-  /* =========================================
-     1. ESTILOS GLOBALES Y DEL MAPA
-     ========================================= */
   :root {
     --bg-page: #FBF4EA;
     --bg-card: #FFFFFF;
@@ -44,7 +40,7 @@
   .filtro-btn:hover { border-color: var(--coral-hover); }
   .filtro-btn.activo { background: var(--coral-active); border-color: var(--coral-active); color: #fff; }
 
-  /* Contenedor del Mapa Adaptativo */
+  /* Mapa Adaptativo */
   .map-wrap { position: relative; max-width: 900px; margin: 16px auto 40px; padding: 0 16px; }
   .map-frame {
     position: relative; width: 100%; border-radius: 20px; overflow: hidden;
@@ -64,35 +60,31 @@
   }
   .local-hitbox.dim { opacity: 0.18; }
 
-  /* =========================================
-     2. RECUADRO FLOTANTE (HOVER) REDISEÑADO
-     ========================================= */
+  /* Recuadro Flotante Rediseñado */
   #callout {
-    position: absolute; z-index: 46; width: max-content; max-width: 260px;
-    background: var(--bg-card); border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    padding: 12px 16px; display: none; pointer-events: none;
+    position: fixed; z-index: 46; width: max-content; max-width: 260px;
+    background: var(--bg-card); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    padding: 10px 14px; display: none; pointer-events: none;
     align-items: center; gap: 12px; border: 1px solid #f0eae6;
   }
   #callout.visible { display: flex; animation: floatUp 0.2s ease; }
   @keyframes floatUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   
   .callout-foto {
-    width: 48px; height: 48px; border-radius: 50%;
+    width: 42px; height: 42px; border-radius: 50%;
     background: var(--coral) center/cover; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-weight: bold; color: #fff; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    font-weight: bold; color: #fff; font-size: 1.2rem;
   }
   .callout-info { display: flex; flex-direction: column; gap: 4px; }
-  .callout-numero { font-size: 0.9rem; font-weight: 800; color: var(--text); }
+  .callout-numero { font-size: 0.85rem; font-weight: 800; color: var(--text); }
   .callout-chips { display: flex; flex-wrap: wrap; gap: 4px; }
   .callout-chips .chip {
     background: #f4f2f0; color: #555; font-size: 0.7rem; font-weight: 700;
     padding: 2px 8px; border-radius: 12px; text-transform: uppercase;
   }
 
-  /* =========================================
-     3. MODAL DINÁMICO (CONTENEDOR)
-     ========================================= */
+  /* Modal y Contenedor Base */
   #modal-backdrop {
     position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none;
     align-items: center; justify-content: center; z-index: 100; padding: 20px;
@@ -102,9 +94,7 @@
   
   #modal-container {
     position: relative; width: 100%; max-width: 750px; max-height: 90vh;
-    overflow-y: auto; border-radius: 20px;
-    /* El fondo será transparente, la tarjeta inyectada pondrá su propio fondo */
-    background: transparent; scrollbar-width: none;
+    overflow-y: auto; border-radius: 20px; background: transparent; scrollbar-width: none;
   }
   #modal-container::-webkit-scrollbar { display: none; }
   
@@ -114,12 +104,8 @@
     cursor: pointer; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   }
 
-  /* =========================================
-     4. ESTILOS COMBINADOS DE LOS PLANES
-     ========================================= */
-  
   /* ESTILOS PLAN NORMAL */
-  .plan-card-container { background: #fff; border-radius: 20px; overflow: hidden; margin: 0 auto; box-shadow: 0 6px 20px rgba(0,0,0,0.05); }
+  .plan-card-container { background: #fff; border-radius: 20px; overflow: hidden; margin: 0 auto; max-width: 400px; box-shadow: 0 6px 20px rgba(0,0,0,0.05); }
   .card-header-bg { height: 90px; background: #d7ccc8 center/cover; }
   .card-avatar-wrap { display: flex; justify-content: center; margin-top: -35px; }
   .card-avatar { width: 75px; height: 75px; border-radius: 50%; border: 4px solid #fff; object-fit: cover; }
@@ -130,36 +116,30 @@
   .normal-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
   /* ESTILOS PLAN PLUS */
-  .plus-card { background: #fff; border-radius: 24px; text-align: center; overflow: hidden; margin: 0 auto; }
+  .plus-card { background: #fff; border-radius: 24px; text-align: center; overflow: hidden; margin: 0 auto; max-width: 800px; }
   .plus-header { height: 140px; background: linear-gradient(135deg, #d8c2b5, #bca596); position: relative; }
   .plus-avatar { position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%); width: 90px; height: 90px; border-radius: 50%; border: 4px solid #fff; }
   .plus-body { padding: 60px 30px 30px; }
   .btn-whatsapp-main { display: flex; align-items: center; justify-content: center; gap: 10px; background: #1f1f1f; color: #fff; padding: 14px; border-radius: 30px; text-decoration: none; font-weight: 700; margin-top: 15px; }
 
   /* ESTILOS PLAN PREMIUM */
-  .profile-card { background: #fff; border-radius: 20px; overflow: hidden; border: 1px solid #e8d5b5; margin: 0 auto; }
+  .profile-card { background: #fff; border-radius: 20px; overflow: hidden; border: 1px solid #e8d5b5; margin: 0 auto; max-width: 750px; }
   .premium-banner { position: relative; height: 220px; background-size: cover; background-position: center; }
   .premium-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6)); }
   .premium-logo { position: absolute; bottom: -55px; left: 50%; transform: translateX(-50%); width: 110px; height: 110px; border-radius: 50%; border: 4px solid #fff; z-index: 2; overflow: hidden;}
   .premium-logo img { width: 100%; height: 100%; object-fit: cover; }
-  
-  /* Utilidades Premium Globales */
   .tabs-container { display: flex; justify-content: center; background: #faf9f7; border-bottom: 1px solid #eaeaea; }
   .tab-btn { background: none; border: none; padding: 16px 24px; font-weight: 700; color: #777; cursor: pointer; transition: color 0.3s; }
   .tab-btn.active { color: #1a1a1a; border-bottom: 3px solid #c5a059; }
   .tab-content { display: none; padding: 30px; }
   .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
-  
   .filter-pills { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 20px; scrollbar-width: none; }
   .pill { background: #f0ede8; color: #777; padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
   .pill.active { background: #1a1a1a; color: #fff; }
   .sub-tab-content { display: none; }
   .sub-tab-content.active { display: block; animation: fadeIn 0.4s ease; }
-  
   .prod-slide { display: none; flex-direction: column; height: 100%; }
   .prod-slide.active { display: flex; animation: fadeIn 0.3s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
 </style>
 </head>
 <body>
@@ -175,18 +155,140 @@
   <div class="map-frame" id="mapFrame">
     <img id="mapImage" src="TianguisDigital.png" alt="Mapa">
     
-    <!-- El viewBox debe coincidir con la resolución original de tu imagen para que escale perfecto -->
     <svg viewBox="0 0 2160 2160" preserveAspectRatio="xMidYMid meet" id="overlaySvg">
-        <!-- Locales de prueba configurados en JS -->
-        <rect class="local-hitbox" data-id="local-1" x="24" y="146" width="201" height="106" rx="14"></rect>
-        <rect class="local-hitbox" data-id="local-2" x="99" y="366" width="101" height="114" rx="14"></rect>
-        <rect class="local-hitbox" data-id="local-3" x="132" y="476" width="102" height="115" rx="14"></rect>
-        
-        <!-- Pega aquí el resto de tus rectángulos (<rect>) del local 4 al 129 -->
+      <!-- 129 Locales Íntegros -->
+      <rect class="local-hitbox" data-id="local-1" x="24" y="146" width="201" height="106" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-2" x="99" y="366" width="101" height="114" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-3" x="132" y="476" width="102" height="115" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-4" x="228" y="191" width="157" height="92" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-5" x="330" y="371" width="88" height="98" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-6" x="344" y="469" width="93" height="97" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-7" x="386" y="221" width="93" height="79" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-8" x="422" y="393" width="76" height="96" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-9" x="440" y="492" width="91" height="96" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-10" x="482" y="242" width="86" height="79" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-11" x="504" y="411" width="78" height="99" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-12" x="540" y="518" width="92" height="94" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-13" x="571" y="259" width="81" height="81" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-14" x="589" y="428" width="80" height="101" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-15" x="638" y="544" width="88" height="93" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-16" x="662" y="277" width="90" height="85" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-17" x="669" y="447" width="80" height="100" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-18" x="736" y="564" width="87" height="92" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-19" x="753" y="465" width="82" height="104" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-20" x="764" y="299" width="82" height="85" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-21" x="840" y="489" width="80" height="101" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-22" x="847" y="317" width="93" height="87" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-23" x="924" y="509" width="80" height="101" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-24" x="949" y="337" width="85" height="92" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-25" x="1008" y="529" width="82" height="100" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-26" x="1039" y="355" width="78" height="91" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-27" x="1091" y="547" width="88" height="102" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-28" x="1122" y="372" width="77" height="90" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-29" x="1201" y="388" width="79" height="90" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-30" x="1289" y="407" width="78" height="93" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-31" x="1378" y="425" width="86" height="98" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-32" x="1472" y="445" width="86" height="98" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-33" x="1566" y="465" width="85" height="97" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-34" x="1796" y="514" width="157" height="188" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-35" x="195" y="690" width="100" height="114" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-36" x="226" y="796" width="103" height="116" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-37" x="427" y="684" width="114" height="121" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-38" x="463" y="806" width="79" height="114" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-39" x="544" y="826" width="79" height="113" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-40" x="550" y="720" width="86" height="110" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-41" x="629" y="850" width="79" height="113" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-42" x="640" y="742" width="77" height="110" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-43" x="724" y="766" width="79" height="111" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-44" x="810" y="790" width="80" height="112" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-45" x="828" y="586" width="82" height="92" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-46" x="896" y="814" width="83" height="111" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-47" x="916" y="608" width="84" height="91" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-48" x="982" y="836" width="79" height="110" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-49" x="1008" y="630" width="82" height="93" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-50" x="1064" y="858" width="84" height="109" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-51" x="1096" y="652" width="85" height="93" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-52" x="1180" y="569" width="80" height="100" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-53" x="1190" y="674" width="85" height="92" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-54" x="1265" y="589" width="81" height="99" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-55" x="1282" y="698" width="78" height="91" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-56" x="1358" y="611" width="79" height="99" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-57" x="1368" y="718" width="82" height="92" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-58" x="1440" y="629" width="83" height="98" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-59" x="1460" y="742" width="92" height="95" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-60" x="1526" y="651" width="76" height="96" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-61" x="1715" y="798" width="158" height="154" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-62" x="1758" y="678" width="155" height="146" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-63" x="301" y="983" width="99" height="115" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-64" x="335" y="1093" width="101" height="115" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-65" x="527" y="1049" width="90" height="118" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-66" x="567" y="1177" width="132" height="116" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-67" x="622" y="1080" width="91" height="108" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-68" x="706" y="1211" width="79" height="108" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-69" x="711" y="874" width="79" height="110" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-70" x="718" y="1108" width="84" height="105" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-71" x="794" y="896" width="79" height="108" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-72" x="808" y="1132" width="80" height="107" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-73" x="878" y="920" width="79" height="107" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-74" x="893" y="1155" width="77" height="102" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-75" x="962" y="938" width="79" height="108" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-76" x="976" y="1178" width="90" height="103" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-77" x="1046" y="962" width="79" height="107" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-78" x="1071" y="1203" width="91" height="102" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-79" x="1132" y="984" width="79" height="109" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-80" x="1154" y="884" width="84" height="109" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-81" x="1218" y="1010" width="79" height="108" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-82" x="1240" y="908" width="84" height="109" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-83" x="1306" y="1038" width="79" height="106" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-84" x="1330" y="936" width="84" height="109" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-85" x="1393" y="1063" width="92" height="105" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-86" x="1414" y="960" width="84" height="109" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-87" x="1633" y="1051" width="136" height="161" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-88" x="1677" y="925" width="141" height="155" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-89" x="396" y="1376" width="102" height="115" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-90" x="432" y="1487" width="101" height="116" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-91" x="654" y="1444" width="97" height="101" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-92" x="697" y="1557" width="111" height="112" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-93" x="756" y="1474" width="85" height="91" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-94" x="786" y="1233" width="75" height="108" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-95" x="844" y="1496" width="79" height="93" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-96" x="870" y="1253" width="74" height="107" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-97" x="928" y="1517" width="73" height="91" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-98" x="948" y="1275" width="74" height="107" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-99" x="1008" y="1540" width="76" height="92" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-100" x="1026" y="1295" width="75" height="107" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-101" x="1090" y="1558" width="71" height="94" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-102" x="1106" y="1317" width="74" height="107" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-103" x="1165" y="1229" width="90" height="99" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-104" x="1184" y="1341" width="74" height="106" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-105" x="1259" y="1255" width="90" height="98" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-106" x="1266" y="1361" width="74" height="106" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-107" x="1344" y="1384" width="91" height="104" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-108" x="1358" y="1281" width="90" height="96" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-109" x="1494" y="1507" width="95" height="147" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-110" x="1537" y="1337" width="102" height="178" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-111" x="517" y="1810" width="153" height="110" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-112" x="668" y="1838" width="111" height="103" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-113" x="778" y="1864" width="111" height="101" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-114" x="814" y="1587" width="88" height="105" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-115" x="886" y="1892" width="110" height="96" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-116" x="907" y="1609" width="89" height="107" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-117" x="996" y="1913" width="110" height="96" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-118" x="998" y="1637" width="85" height="102" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-119" x="1086" y="1659" width="88" height="105" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-120" x="1104" y="1937" width="104" height="92" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-121" x="1165" y="1580" width="71" height="91" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-122" x="1172" y="1681" width="89" height="106" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-123" x="1210" y="1960" width="104" height="91" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-124" x="1239" y="1597" width="65" height="91" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-125" x="1266" y="1705" width="89" height="106" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-126" x="1307" y="1616" width="71" height="90" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-127" x="1422" y="1930" width="75" height="156" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-128" x="1436" y="1787" width="79" height="145" rx="14"></rect>
+      <rect class="local-hitbox" data-id="local-129" x="1460" y="1645" width="91" height="144" rx="14"></rect>
     </svg>
   </div>
   
-  <!-- Callout Flotante Modernizado -->
   <div id="callout">
     <div class="callout-foto" id="callout-foto"></div>
     <div class="callout-info">
@@ -196,20 +298,17 @@
   </div>
 </div>
 
-<!-- Modal Principal -->
 <div id="modal-backdrop">
   <div id="modal-container">
     <button id="modal-close">&times;</button>
-    <!-- Aquí se inyectará el HTML de los templates -->
     <div id="modal-dynamic-content"></div>
   </div>
 </div>
 
 <!-- =========================================================
-     ZONA DE PLANTILLAS (Reemplaza el interior con tus archivos)
+     PLANTILLAS
      ========================================================= -->
 
-<!-- PLANTILLA: PLAN NORMAL -->
 <template id="tpl-normal">
   <div class="plan-card-container">
     <div class="card-header-bg"></div>
@@ -224,12 +323,10 @@
         <div class="normal-thumb"><img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300"></div>
         <div class="normal-thumb"><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=300"></div>
       </div>
-      <div class="footer-info">🕒 Sáb - Dom 10:00 - 17:00</div>
     </div>
   </div>
 </template>
 
-<!-- PLANTILLA: PLAN PLUS -->
 <template id="tpl-plus">
   <div class="plus-card">
     <div class="plus-header">
@@ -239,12 +336,10 @@
       <h1 data-bind="nombre" style="font-size: 1.6rem; margin-bottom: 6px;">Tienda Plus</h1>
       <p style="color: #666; margin-bottom: 16px;">Tu espacio mejorado en el tianguis.</p>
       <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800" style="width: 100%; border-radius: 16px; margin-bottom: 20px;">
-      <a href="#" class="btn-whatsapp-main">💬 Contactar por WhatsApp</a>
     </div>
   </div>
 </template>
 
-<!-- PLANTILLA: PLAN PREMIUM -->
 <template id="tpl-premium">
   <div class="profile-card">
     <div class="premium-banner" style="background-image: url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800');">
@@ -252,72 +347,43 @@
     </div>
     <div style="padding: 70px 30px 25px; text-align: center;">
         <h1 data-bind="nombre" style="font-size: 1.8rem; margin-bottom: 8px;">Boutique Premium</h1>
-        <p style="color: #777;">Espacio premium en el tianguis con atención preferencial.</p>
+        <p style="color: #777;">Espacio premium en el tianguis.</p>
     </div>
-    
     <div class="tabs-container">
         <button class="tab-btn active" onclick="openTab(event, 'catalogo')">Catálogo</button>
         <button class="tab-btn" onclick="openTab(event, 'info')">Info</button>
     </div>
-
-    <!-- Pestaña Catálogo (Simplificada para el ejemplo, pega tu HTML completo aquí) -->
     <div id="catalogo" class="tab-content active">
         <div class="filter-pills">
             <div class="pill active" onclick="openFilter(event, 'filtro-todo')">Todo</div>
-            <div class="pill" onclick="openFilter(event, 'filtro-bolsos')">Bolsos</div>
         </div>
-        
         <div id="filtro-todo" class="sub-tab-content active" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px;">
             <div style="background: #fff; border: 1px solid #eaeaea; border-radius: 14px; padding: 12px; display: flex; flex-direction: column;">
-                
-                <!-- Slide 1 -->
                 <div class="prod-slide active">
                     <div style="position: relative; margin-bottom: 10px; border-radius: 10px; overflow: hidden;">
-                        <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)" style="position: absolute; top:50%; transform:translateY(-50%); left:5px; background: rgba(0,0,0,0.4); color:#fff; border:none; width:24px; height:24px; border-radius:50%; z-index:5;">❮</button>
                         <img src="https://images.unsplash.com/photo-1590689627947-66c3a165fc34?w=400" style="width:100%; aspect-ratio:1/1; object-fit:cover;">
-                        <button class="gallery-btn next" onclick="changeProductSlide(this, 1)" style="position: absolute; top:50%; transform:translateY(-50%); right:5px; background: rgba(0,0,0,0.4); color:#fff; border:none; width:24px; height:24px; border-radius:50%; z-index:5;">❯</button>
                     </div>
                     <div style="font-weight: 600; font-size: 0.9rem;">Bolsa Tote Piel</div>
-                    <div style="font-weight: 800; font-size: 1.1rem; color: #c5a059;">$590 MXN</div>
                 </div>
-
-                <!-- Slide 2 (Sincronizado) -->
-                <div class="prod-slide">
-                    <div style="position: relative; margin-bottom: 10px; border-radius: 10px; overflow: hidden;">
-                        <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)" style="position: absolute; top:50%; transform:translateY(-50%); left:5px; background: rgba(0,0,0,0.4); color:#fff; border:none; width:24px; height:24px; border-radius:50%; z-index:5;">❮</button>
-                        <img src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=400" style="width:100%; aspect-ratio:1/1; object-fit:cover;">
-                        <button class="gallery-btn next" onclick="changeProductSlide(this, 1)" style="position: absolute; top:50%; transform:translateY(-50%); right:5px; background: rgba(0,0,0,0.4); color:#fff; border:none; width:24px; height:24px; border-radius:50%; z-index:5;">❯</button>
-                    </div>
-                    <div style="font-weight: 600; font-size: 0.9rem;">Bolso Cruzado Negro</div>
-                    <div style="font-weight: 800; font-size: 1.1rem; color: #c5a059;">$450 MXN</div>
-                </div>
-                
             </div>
         </div>
-        
-        <div id="filtro-bolsos" class="sub-tab-content">
-            <p>Sección de bolsos...</p>
-        </div>
     </div>
-    
     <div id="info" class="tab-content">
         <h3>Sobre nosotros</h3>
-        <p>Somos un local con 5 años de experiencia.</p>
     </div>
   </div>
 </template>
 
 <script>
   // ==========================================
-  // LÓGICA DEL MAPA Y MODALES DINÁMICOS
+  // JAVASCRIPT CORREGIDO
   // ==========================================
-  const CATEGORIAS = ["Ropa", "Comida", "Calzado", "Accesorios", "Otros"];
+  const CATEGORIAS = ["Ropa", "Comida", "Calzado", "Accesorios", "Otros", "Por definir"];
 
   const shopsData = {
-    // 3 Locales de Prueba
-    "local-1": { nombre: "Boutique Elegance", categoria: "Ropa", plan: "premium" },
+    "local-1": { nombre: "Tacos el loco", categoria: "Comida", plan: "premium" },
     "local-2": { nombre: "Zapatos Plus", categoria: "Calzado", plan: "plus" },
-    "local-3": { nombre: "Tacos el Loco", categoria: "Comida", plan: "normal" }
+    "local-3": { nombre: "Ropa Local 3", categoria: "Ropa", plan: "normal" }
   };
 
   const svg = document.getElementById("overlaySvg");
@@ -325,7 +391,7 @@
   const modalBackdrop = document.getElementById("modal-backdrop");
   const modalContent = document.getElementById("modal-dynamic-content");
 
-  // Filtros Básicos
+  // Filtros
   const filtrosWrap = document.getElementById("filtros");
   CATEGORIAS.forEach(cat => {
     const btn = document.createElement("button");
@@ -334,59 +400,72 @@
       document.querySelectorAll(".filtro-btn").forEach(b => b.classList.remove("activo"));
       btn.classList.add("activo");
       document.querySelectorAll(".local-hitbox").forEach(el => {
-        const shop = shopsData[el.dataset.id];
-        el.classList.toggle("dim", !shop || shop.categoria !== cat);
+        const id = el.dataset.id;
+        const shop = shopsData[id] || { categoria: "Por definir" };
+        el.classList.toggle("dim", shop.categoria !== cat);
       });
     };
     filtrosWrap.appendChild(btn);
   });
 
-  // Callout Flotante (Hover Inteligente)
-  svg.addEventListener("mousemove", (e) => {
-    const target = e.target.closest(".local-hitbox");
-    if (!target) { callout.classList.remove("visible"); return; }
+  // Posicionamiento exacto del hover (Corrección)
+  function positionCallout(hitboxEl) {
+    const boxRect = hitboxEl.getBoundingClientRect();
+    const calloutW = callout.offsetWidth || 220;
+    const calloutH = callout.offsetHeight || 60;
     
-    const shop = shopsData[target.dataset.id] || { nombre: "Local sin registrar", categoria: "Vacio" };
+    let top = boxRect.top - calloutH - 10;
+    let left = boxRect.left + (boxRect.width / 2) - (calloutW / 2);
+    
+    callout.style.top = `${top}px`;
+    callout.style.left = `${left}px`;
+  }
+
+  // Eventos de Hover
+  svg.addEventListener("mouseover", (e) => {
+    const target = e.target.closest(".local-hitbox");
+    if (!target) return;
+    
+    const id = target.dataset.id;
+    // Si el local no está en shopsData, crea datos genéricos para que no se rompa el código
+    const shop = shopsData[id] || { nombre: "Local " + id.replace('local-', ''), categoria: "Sin registro" };
     
     document.getElementById("callout-foto").textContent = shop.nombre.charAt(0).toUpperCase();
-    document.getElementById("callout-numero").textContent = target.dataset.id.replace('-', ' ').toUpperCase();
+    document.getElementById("callout-numero").textContent = id.replace('-', ' ').toUpperCase();
     document.getElementById("callout-chips").innerHTML = `<span class="chip">${shop.categoria}</span>`;
     
     callout.classList.add("visible");
-    
-    // Seguir al cursor
-    const mapRect = document.getElementById("mapFrame").getBoundingClientRect();
-    let x = e.clientX - mapRect.left + 15;
-    let y = e.clientY - mapRect.top + 15;
-    callout.style.left = `${x}px`;
-    callout.style.top = `${y}px`;
+    positionCallout(target);
   });
 
-  svg.addEventListener("mouseleave", () => callout.classList.remove("visible"));
+  svg.addEventListener("mouseout", (e) => {
+    const target = e.target.closest(".local-hitbox");
+    if (target) callout.classList.remove("visible");
+  });
 
-  // Click para Abrir Modal (Inyección de Templates)
+  // Eventos de Clic (Abrir Modal)
   svg.addEventListener("click", (e) => {
     const target = e.target.closest(".local-hitbox");
     if (!target) return;
     
-    const shop = shopsData[target.dataset.id] || { nombre: "Local Básico", plan: "normal" };
+    const id = target.dataset.id;
+    const shop = shopsData[id] || { nombre: "Local " + id.replace('local-', ''), plan: "normal" };
     
-    // Limpiar modal
     modalContent.innerHTML = "";
     
-    // Seleccionar Plantilla
-    let templateId = "tpl-normal"; // Default
+    let templateId = "tpl-normal";
     if(shop.plan === "plus") templateId = "tpl-plus";
     if(shop.plan === "premium") templateId = "tpl-premium";
     
     const template = document.getElementById(templateId);
-    const clone = template.content.cloneNode(true);
-    
-    // Mapeo Básico de Datos (Ejemplo: cambiar nombre si existe atributo data-bind)
-    const titleEl = clone.querySelector('[data-bind="nombre"]');
-    if(titleEl) titleEl.textContent = shop.nombre;
+    if(template) {
+        const clone = template.content.cloneNode(true);
+        const titleEl = clone.querySelector('[data-bind="nombre"]');
+        if(titleEl) titleEl.textContent = shop.nombre;
+        modalContent.appendChild(clone);
+    }
 
-    modalContent.appendChild(clone);
+    callout.classList.remove("visible");
     modalBackdrop.classList.add("open");
     document.body.style.overflow = "hidden";
   });
@@ -399,34 +478,18 @@
     document.body.style.overflow = "auto";
   }
 
-  // ==========================================
-  // FUNCIONES GLOBALES PARA EL PLAN PREMIUM
-  // ==========================================
+  // Scripts de Plantilla
   window.openTab = function(evt, tabName) {
       document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
       document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
       document.getElementById(tabName).classList.add("active");
       evt.currentTarget.classList.add("active");
   };
-
   window.openFilter = function(evt, filterName) {
       document.querySelectorAll(".sub-tab-content").forEach(el => el.classList.remove("active"));
       document.querySelectorAll(".pill").forEach(el => el.classList.remove("active"));
       document.getElementById(filterName).classList.add("active");
       evt.currentTarget.classList.add("active");
-  };
-
-  // Carrusel Sincronizado Premium (Auto-detecta la longitud)
-  window.changeProductSlide = function(btn, direction) {
-      const container = btn.closest('.product-card') || btn.parentElement.parentElement;
-      const slides = container.querySelectorAll('.prod-slide');
-      if(slides.length === 0) return;
-      
-      let currentIndex = Array.from(slides).findIndex(slide => slide.classList.contains('active'));
-      slides[currentIndex].classList.remove('active');
-      
-      let nextIndex = (currentIndex + direction + slides.length) % slides.length;
-      slides[nextIndex].classList.add('active');
   };
 </script>
 </body>
