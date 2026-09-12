@@ -4,27 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tianguis Digital — Mapa interactivo</title>
+<!-- Iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-  .disclaimer-container {
-  width: 100%;
-  background-color: #f8f9fa;
-  padding: 20px 15px;
-  border-top: 1px solid #e0e0e0;
-  text-align: center;
-  margin-top: 40px;
-  box-sizing: border-box;
-}
-
-.disclaimer-text {
-  font-size: 0.85rem;
-  color: #6c757d;
-  line-height: 1.5;
-  max-width: 900px;
-  margin: 0 auto;
-  font-family: system-ui, -apple-system, sans-serif;
-}
+  /* =========================================
+     1. ESTILOS GLOBALES Y DEL MAPA
+     ========================================= */
   :root {
-    --bg-page: #FBF4EA;      /* piso del mercado / fondo de la pagina */
+    --bg-page: #FBF4EA;
     --bg-card: #FFFFFF;
     --coral: #F7BFB6;
     --coral-hover: #FF9E8C;
@@ -32,2726 +19,415 @@
     --text: #2B2B2B;
     --muted: #857F76;
     --border: #EDE3D4;
-    --premium: #D9C6EC;
-    --plus: #F9D9A6;
     --shadow: 0 12px 32px rgba(43,32,20,0.12);
+    --font-main: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   }
-  * { box-sizing: border-box; }
+  
   html, body {
     margin: 0; padding: 0;
     background: linear-gradient(160deg, #FFFBF5 0%, #FBF0DE 55%, #F6E4CB 100%);
     background-attachment: fixed;
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text); font-family: var(--font-main);
   }
-  header {
-    padding: 24px clamp(16px, 4vw, 40px) 8px;
-    text-align: center;
-  }
-  header h1 { margin: 0 0 4px; font-size: clamp(22px, 3vw, 30px); }
+
+  header { padding: 24px 20px 8px; text-align: center; }
+  header h1 { margin: 0 0 4px; font-size: 28px; }
   header p { margin: 0; color: var(--muted); font-size: 14px; }
 
-  /* ---- Filtro de categorías ---- */
-  .filtros {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 16px clamp(16px, 4vw, 40px) 4px;
-  }
+  /* Filtros */
+  .filtros { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 16px 20px; }
   .filtro-btn {
-    border: 1px solid var(--border);
-    background: var(--bg-card);
-    color: var(--text);
-    padding: 8px 16px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    border: 1px solid var(--border); background: var(--bg-card); color: var(--text);
+    padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
   }
   .filtro-btn:hover { border-color: var(--coral-hover); }
-  .filtro-btn.activo {
-    background: var(--coral-active);
-    border-color: var(--coral-active);
-    color: #fff;
-  }
+  .filtro-btn.activo { background: var(--coral-active); border-color: var(--coral-active); color: #fff; }
 
-  .map-wrap {
-    position: relative;
-    max-width: 900px;
-    margin: 16px auto 40px;
-    padding: 0 16px;
-  }
+  /* Contenedor del Mapa Adaptativo */
+  .map-wrap { position: relative; max-width: 900px; margin: 16px auto 40px; padding: 0 16px; }
   .map-frame {
-    position: relative;
-    width: 100%;
-    line-height: 0;
-    border-radius: 20px;
-    overflow: hidden;
-    background: #fff;
-    box-shadow: var(--shadow);
+    position: relative; width: 100%; border-radius: 20px; overflow: hidden;
+    background: #fff; box-shadow: var(--shadow);
   }
-  .map-frame img {
-    display: block;
-    width: 100%;
-    height: auto;
-    user-select: none;
-    -webkit-user-drag: none;
-  }
-  .map-frame svg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
+  .map-frame img { display: block; width: 100%; height: auto; user-select: none; }
+  .map-frame svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 
   .local-hitbox {
-    fill: #ffffff;
-    fill-opacity: 0;
-    stroke: #ffffff;
-    stroke-opacity: 0;
-    stroke-width: 5;
-    cursor: pointer;
-    transform-box: fill-box;
-    transform-origin: center;
-    transition: fill-opacity 0.12s ease, stroke-opacity 0.12s ease,
-                opacity 0.2s ease, transform 0.18s ease, filter 0.18s ease;
+    fill: #ffffff; fill-opacity: 0; stroke: #ffffff; stroke-opacity: 0; stroke-width: 5;
+    cursor: pointer; transform-box: fill-box; transform-origin: center;
+    transition: all 0.2s ease;
   }
-  .local-hitbox:hover,
-  .local-hitbox:focus-visible,
-  .local-hitbox.is-open,
-  .local-hitbox.match {
-    fill-opacity: 0.55;
-    stroke-opacity: 0.9;
-    transform: scale(1.05) translateY(-4px);
+  .local-hitbox:hover, .local-hitbox.is-open, .local-hitbox.match {
+    fill-opacity: 0.55; stroke-opacity: 0.9; transform: scale(1.05) translateY(-4px);
     filter: drop-shadow(0 6px 14px rgba(255, 158, 140, 0.45));
   }
-  .local-hitbox:focus-visible { outline: none; }
-
-  /* estado del filtro de categorias: los que coinciden se ven igual que si
-     el mouse estuviera encima (mismo brillo del hover); los que no, se atenúan */
   .local-hitbox.dim { opacity: 0.18; }
 
-  /* ---- Tarjeta flotante (callout) con linea conectora ---- */
-  #connectorSvg {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none;
-    z-index: 45;
-  }
-  #connectorSvg line {
-    stroke: var(--text);
-    stroke-width: 1.5;
-    opacity: 0;
-  }
+  /* =========================================
+     2. RECUADRO FLOTANTE (HOVER) REDISEÑADO
+     ========================================= */
   #callout {
-    position: fixed;
-    z-index: 46;
-    width: 240px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    box-shadow: var(--shadow);
-    padding: 14px;
-    display: none;
+    position: absolute; z-index: 46; width: max-content; max-width: 260px;
+    background: var(--bg-card); border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    padding: 12px 16px; display: none; pointer-events: none;
+    align-items: center; gap: 12px; border: 1px solid #f0eae6;
   }
-  #callout.visible { display: block; }
-  .callout-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  #callout.visible { display: flex; animation: floatUp 0.2s ease; }
+  @keyframes floatUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  
   .callout-foto {
-    width: 46px; height: 46px;
-    border-radius: 50%;
-    background: var(--coral) center/cover no-repeat;
-    flex-shrink: 0;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--coral) center/cover; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 700; color: #fff; font-size: 15px;
+    font-weight: bold; color: #fff; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   }
-  .callout-info { min-width: 0; }
-  .callout-numero { font-size: 11px; color: var(--muted); font-weight: 700; }
-  .callout-nombre { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .callout-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
-  .chip {
-    background: var(--bg-page);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 999px;
-  }
-  .callout-btn {
-    display: block;
-    width: 100%;
-    text-align: center;
-    background: var(--coral-active);
-    color: #fff;
-    border: none;
-    padding: 9px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
+  .callout-info { display: flex; flex-direction: column; gap: 4px; }
+  .callout-numero { font-size: 0.9rem; font-weight: 800; color: var(--text); }
+  .callout-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .callout-chips .chip {
+    background: #f4f2f0; color: #555; font-size: 0.7rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 12px; text-transform: uppercase;
   }
 
-  /* ---- Modal (perfil completo) ---- */
+  /* =========================================
+     3. MODAL DINÁMICO (CONTENEDOR)
+     ========================================= */
   #modal-backdrop {
-    position: fixed; inset: 0;
-    background: rgba(43,32,20,0.35);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 50;
-    padding: 20px;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none;
+    align-items: center; justify-content: center; z-index: 100; padding: 20px;
+    backdrop-filter: blur(4px);
   }
   #modal-backdrop.open { display: flex; }
-  #modal {
-    background: var(--bg-card);
-    border-radius: 20px;
-    width: 100%;
-    max-width: 400px;
-    max-height: 88vh;
-    overflow-y: auto;
-    padding: 28px 24px 24px;
-    position: relative;
-    text-align: center;
+  
+  #modal-container {
+    position: relative; width: 100%; max-width: 750px; max-height: 90vh;
+    overflow-y: auto; border-radius: 20px;
+    /* El fondo será transparente, la tarjeta inyectada pondrá su propio fondo */
+    background: transparent; scrollbar-width: none;
   }
+  #modal-container::-webkit-scrollbar { display: none; }
+  
   #modal-close {
-    position: absolute;
-    top: 14px; right: 14px;
-    background: var(--bg-page);
-    border: none;
-    color: var(--text);
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    font-size: 18px;
-    cursor: pointer;
-    line-height: 1;
+    position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9);
+    border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 20px;
+    cursor: pointer; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   }
-  #modal-close:hover { background: var(--border); }
-  #modal-foto {
-    width: 96px; height: 96px;
-    border-radius: 50%;
-    background: var(--coral) center/cover no-repeat;
-    margin: 0 auto 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; color: #fff; font-size: 28px;
-    border: 3px solid var(--bg-card);
-    box-shadow: 0 0 0 3px var(--border);
-  }
-  #modal-badge {
-    display: none;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.03em;
-    padding: 4px 12px;
-    border-radius: 999px;
-    margin-bottom: 8px;
-  }
-  #modal-badge.plan-plus { display: inline-block; background: var(--plus); color: #7a5b16; }
-  #modal-numero { color: var(--muted); font-size: 12px; font-weight: 700; margin-bottom: 2px; }
-  #modal-title { margin: 0 0 10px; font-size: 22px; }
-  #modal-extra {
-    text-align: left;
-    background: var(--bg-page);
-    border-radius: 12px;
-    padding: 12px 14px;
-    margin-bottom: 14px;
-    display: none;
-  }
-  #modal-extra.visible { display: block; }
-  #modal-extra p { margin: 4px 0; font-size: 13px; }
-  #modal-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 10px; }
-  #modal-desc { color: var(--muted); font-size: 14px; line-height: 1.5; margin-bottom: 22px; text-align: left; }
-  #modal-whatsapp {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: #25d366;
-    color: #06210f;
-    font-weight: 700;
-    text-decoration: none;
-    padding: 12px 16px;
-    border-radius: 12px;
-    font-size: 15px;
-  }
-  #modal-whatsapp:hover { filter: brightness(1.05); }
 
-  body.modal-open { overflow: hidden; }
+  /* =========================================
+     4. ESTILOS COMBINADOS DE LOS PLANES
+     ========================================= */
+  
+  /* ESTILOS PLAN NORMAL */
+  .plan-card-container { background: #fff; border-radius: 20px; overflow: hidden; margin: 0 auto; box-shadow: 0 6px 20px rgba(0,0,0,0.05); }
+  .card-header-bg { height: 90px; background: #d7ccc8 center/cover; }
+  .card-avatar-wrap { display: flex; justify-content: center; margin-top: -35px; }
+  .card-avatar { width: 75px; height: 75px; border-radius: 50%; border: 4px solid #fff; object-fit: cover; }
+  .card-body { padding: 15px 20px 20px; text-align: center; }
+  .normal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px; }
+  .normal-thumb { background: #f5f5f5; height: 75px; border-radius: 10px; overflow: hidden; }
+  .normal-thumb.wide { grid-column: span 2; height: 90px; }
+  .normal-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-  @media (max-width: 480px) {
-    #callout { width: 210px; }
-  }
+  /* ESTILOS PLAN PLUS */
+  .plus-card { background: #fff; border-radius: 24px; text-align: center; overflow: hidden; margin: 0 auto; }
+  .plus-header { height: 140px; background: linear-gradient(135deg, #d8c2b5, #bca596); position: relative; }
+  .plus-avatar { position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%); width: 90px; height: 90px; border-radius: 50%; border: 4px solid #fff; }
+  .plus-body { padding: 60px 30px 30px; }
+  .btn-whatsapp-main { display: flex; align-items: center; justify-content: center; gap: 10px; background: #1f1f1f; color: #fff; padding: 14px; border-radius: 30px; text-decoration: none; font-weight: 700; margin-top: 15px; }
+
+  /* ESTILOS PLAN PREMIUM */
+  .profile-card { background: #fff; border-radius: 20px; overflow: hidden; border: 1px solid #e8d5b5; margin: 0 auto; }
+  .premium-banner { position: relative; height: 220px; background-size: cover; background-position: center; }
+  .premium-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6)); }
+  .premium-logo { position: absolute; bottom: -55px; left: 50%; transform: translateX(-50%); width: 110px; height: 110px; border-radius: 50%; border: 4px solid #fff; z-index: 2; overflow: hidden;}
+  .premium-logo img { width: 100%; height: 100%; object-fit: cover; }
+  
+  /* Utilidades Premium Globales */
+  .tabs-container { display: flex; justify-content: center; background: #faf9f7; border-bottom: 1px solid #eaeaea; }
+  .tab-btn { background: none; border: none; padding: 16px 24px; font-weight: 700; color: #777; cursor: pointer; transition: color 0.3s; }
+  .tab-btn.active { color: #1a1a1a; border-bottom: 3px solid #c5a059; }
+  .tab-content { display: none; padding: 30px; }
+  .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+  
+  .filter-pills { display: flex; gap: 10px; overflow-x: auto; margin-bottom: 20px; scrollbar-width: none; }
+  .pill { background: #f0ede8; color: #777; padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+  .pill.active { background: #1a1a1a; color: #fff; }
+  .sub-tab-content { display: none; }
+  .sub-tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+  
+  .prod-slide { display: none; flex-direction: column; height: 100%; }
+  .prod-slide.active { display: flex; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Tianguis de boca del rio</h1>
-  <p>toca o pasa el mouse sobre un local para ver su información.</p>
+  <h1>Tianguis de Boca del Río</h1>
+  <p>Toca o pasa el mouse sobre un local para ver su información.</p>
 </header>
 
-<div class="filtros" id="filtros">
-</div>
+<div class="filtros" id="filtros"></div>
 
 <div class="map-wrap">
   <div class="map-frame" id="mapFrame">
-    <img id="mapImage" src="TianguisDigital.png" alt="Mapa del Tianguis Digital" draggable="false">
+    <img id="mapImage" src="TianguisDigital.png" alt="Mapa">
+    
+    <!-- El viewBox debe coincidir con la resolución original de tu imagen para que escale perfecto -->
     <svg viewBox="0 0 2160 2160" preserveAspectRatio="xMidYMid meet" id="overlaySvg">
-<rect class="local-hitbox" data-id="local-1" x="24" y="146" width="201" height="106" rx="14" tabindex="0" role="button" aria-label="Local 1, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-2" x="99" y="366" width="101" height="114" rx="14" tabindex="0" role="button" aria-label="Local 2, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-3" x="132" y="476" width="102" height="115" rx="14" tabindex="0" role="button" aria-label="Local 3, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-4" x="228" y="191" width="157" height="92" rx="14" tabindex="0" role="button" aria-label="Local 4, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-5" x="330" y="371" width="88" height="98" rx="14" tabindex="0" role="button" aria-label="Local 5, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-6" x="344" y="469" width="93" height="97" rx="14" tabindex="0" role="button" aria-label="Local 6, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-7" x="386" y="221" width="93" height="79" rx="14" tabindex="0" role="button" aria-label="Local 7, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-8" x="422" y="393" width="76" height="96" rx="14" tabindex="0" role="button" aria-label="Local 8, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-9" x="440" y="492" width="91" height="96" rx="14" tabindex="0" role="button" aria-label="Local 9, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-10" x="482" y="242" width="86" height="79" rx="14" tabindex="0" role="button" aria-label="Local 10, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-11" x="504" y="411" width="78" height="99" rx="14" tabindex="0" role="button" aria-label="Local 11, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-12" x="540" y="518" width="92" height="94" rx="14" tabindex="0" role="button" aria-label="Local 12, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-13" x="571" y="259" width="81" height="81" rx="14" tabindex="0" role="button" aria-label="Local 13, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-14" x="589" y="428" width="80" height="101" rx="14" tabindex="0" role="button" aria-label="Local 14, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-15" x="638" y="544" width="88" height="93" rx="14" tabindex="0" role="button" aria-label="Local 15, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-16" x="662" y="277" width="90" height="85" rx="14" tabindex="0" role="button" aria-label="Local 16, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-17" x="669" y="447" width="80" height="100" rx="14" tabindex="0" role="button" aria-label="Local 17, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-18" x="736" y="564" width="87" height="92" rx="14" tabindex="0" role="button" aria-label="Local 18, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-19" x="753" y="465" width="82" height="104" rx="14" tabindex="0" role="button" aria-label="Local 19, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-20" x="764" y="299" width="82" height="85" rx="14" tabindex="0" role="button" aria-label="Local 20, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-21" x="840" y="489" width="80" height="101" rx="14" tabindex="0" role="button" aria-label="Local 21, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-22" x="847" y="317" width="93" height="87" rx="14" tabindex="0" role="button" aria-label="Local 22, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-23" x="924" y="509" width="80" height="101" rx="14" tabindex="0" role="button" aria-label="Local 23, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-24" x="949" y="337" width="85" height="92" rx="14" tabindex="0" role="button" aria-label="Local 24, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-25" x="1008" y="529" width="82" height="100" rx="14" tabindex="0" role="button" aria-label="Local 25, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-26" x="1039" y="355" width="78" height="91" rx="14" tabindex="0" role="button" aria-label="Local 26, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-27" x="1091" y="547" width="88" height="102" rx="14" tabindex="0" role="button" aria-label="Local 27, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-28" x="1122" y="372" width="77" height="90" rx="14" tabindex="0" role="button" aria-label="Local 28, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-29" x="1201" y="388" width="79" height="90" rx="14" tabindex="0" role="button" aria-label="Local 29, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-30" x="1289" y="407" width="78" height="93" rx="14" tabindex="0" role="button" aria-label="Local 30, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-31" x="1378" y="425" width="86" height="98" rx="14" tabindex="0" role="button" aria-label="Local 31, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-32" x="1472" y="445" width="86" height="98" rx="14" tabindex="0" role="button" aria-label="Local 32, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-33" x="1566" y="465" width="85" height="97" rx="14" tabindex="0" role="button" aria-label="Local 33, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-34" x="1796" y="514" width="157" height="188" rx="14" tabindex="0" role="button" aria-label="Local 34, pasillo 1"></rect>
-            <rect class="local-hitbox" data-id="local-35" x="195" y="690" width="100" height="114" rx="14" tabindex="0" role="button" aria-label="Local 35, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-36" x="226" y="796" width="103" height="116" rx="14" tabindex="0" role="button" aria-label="Local 36, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-37" x="427" y="684" width="114" height="121" rx="14" tabindex="0" role="button" aria-label="Local 37, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-38" x="463" y="806" width="79" height="114" rx="14" tabindex="0" role="button" aria-label="Local 38, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-39" x="544" y="826" width="79" height="113" rx="14" tabindex="0" role="button" aria-label="Local 39, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-40" x="550" y="720" width="86" height="110" rx="14" tabindex="0" role="button" aria-label="Local 40, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-41" x="629" y="850" width="79" height="113" rx="14" tabindex="0" role="button" aria-label="Local 41, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-42" x="640" y="742" width="77" height="110" rx="14" tabindex="0" role="button" aria-label="Local 42, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-43" x="724" y="766" width="79" height="111" rx="14" tabindex="0" role="button" aria-label="Local 43, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-44" x="810" y="790" width="80" height="112" rx="14" tabindex="0" role="button" aria-label="Local 44, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-45" x="828" y="586" width="82" height="92" rx="14" tabindex="0" role="button" aria-label="Local 45, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-46" x="896" y="814" width="83" height="111" rx="14" tabindex="0" role="button" aria-label="Local 46, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-47" x="916" y="608" width="84" height="91" rx="14" tabindex="0" role="button" aria-label="Local 47, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-48" x="982" y="836" width="79" height="110" rx="14" tabindex="0" role="button" aria-label="Local 48, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-49" x="1008" y="630" width="82" height="93" rx="14" tabindex="0" role="button" aria-label="Local 49, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-50" x="1064" y="858" width="84" height="109" rx="14" tabindex="0" role="button" aria-label="Local 50, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-51" x="1096" y="652" width="85" height="93" rx="14" tabindex="0" role="button" aria-label="Local 51, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-52" x="1180" y="569" width="80" height="100" rx="14" tabindex="0" role="button" aria-label="Local 52, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-53" x="1190" y="674" width="85" height="92" rx="14" tabindex="0" role="button" aria-label="Local 53, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-54" x="1265" y="589" width="81" height="99" rx="14" tabindex="0" role="button" aria-label="Local 54, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-55" x="1282" y="698" width="78" height="91" rx="14" tabindex="0" role="button" aria-label="Local 55, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-56" x="1358" y="611" width="79" height="99" rx="14" tabindex="0" role="button" aria-label="Local 56, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-57" x="1368" y="718" width="82" height="92" rx="14" tabindex="0" role="button" aria-label="Local 57, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-58" x="1440" y="629" width="83" height="98" rx="14" tabindex="0" role="button" aria-label="Local 58, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-59" x="1460" y="742" width="92" height="95" rx="14" tabindex="0" role="button" aria-label="Local 59, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-60" x="1526" y="651" width="76" height="96" rx="14" tabindex="0" role="button" aria-label="Local 60, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-61" x="1715" y="798" width="158" height="154" rx="14" tabindex="0" role="button" aria-label="Local 61, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-62" x="1758" y="678" width="155" height="146" rx="14" tabindex="0" role="button" aria-label="Local 62, pasillo 2"></rect>
-            <rect class="local-hitbox" data-id="local-63" x="301" y="983" width="99" height="115" rx="14" tabindex="0" role="button" aria-label="Local 63, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-64" x="335" y="1093" width="101" height="115" rx="14" tabindex="0" role="button" aria-label="Local 64, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-65" x="527" y="1049" width="90" height="118" rx="14" tabindex="0" role="button" aria-label="Local 65, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-66" x="567" y="1177" width="132" height="116" rx="14" tabindex="0" role="button" aria-label="Local 66, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-67" x="622" y="1080" width="91" height="108" rx="14" tabindex="0" role="button" aria-label="Local 67, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-68" x="706" y="1211" width="79" height="108" rx="14" tabindex="0" role="button" aria-label="Local 68, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-69" x="711" y="874" width="79" height="110" rx="14" tabindex="0" role="button" aria-label="Local 69, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-70" x="718" y="1108" width="84" height="105" rx="14" tabindex="0" role="button" aria-label="Local 70, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-71" x="794" y="896" width="79" height="108" rx="14" tabindex="0" role="button" aria-label="Local 71, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-72" x="808" y="1132" width="80" height="107" rx="14" tabindex="0" role="button" aria-label="Local 72, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-73" x="878" y="920" width="79" height="107" rx="14" tabindex="0" role="button" aria-label="Local 73, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-74" x="893" y="1155" width="77" height="102" rx="14" tabindex="0" role="button" aria-label="Local 74, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-75" x="962" y="938" width="79" height="108" rx="14" tabindex="0" role="button" aria-label="Local 75, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-76" x="976" y="1178" width="90" height="103" rx="14" tabindex="0" role="button" aria-label="Local 76, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-77" x="1046" y="962" width="79" height="107" rx="14" tabindex="0" role="button" aria-label="Local 77, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-78" x="1071" y="1203" width="91" height="102" rx="14" tabindex="0" role="button" aria-label="Local 78, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-79" x="1132" y="984" width="79" height="109" rx="14" tabindex="0" role="button" aria-label="Local 79, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-80" x="1154" y="884" width="84" height="109" rx="14" tabindex="0" role="button" aria-label="Local 80, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-81" x="1218" y="1010" width="79" height="108" rx="14" tabindex="0" role="button" aria-label="Local 81, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-82" x="1240" y="908" width="84" height="109" rx="14" tabindex="0" role="button" aria-label="Local 82, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-83" x="1306" y="1038" width="79" height="106" rx="14" tabindex="0" role="button" aria-label="Local 83, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-84" x="1330" y="936" width="84" height="109" rx="14" tabindex="0" role="button" aria-label="Local 84, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-85" x="1393" y="1063" width="92" height="105" rx="14" tabindex="0" role="button" aria-label="Local 85, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-86" x="1414" y="960" width="84" height="109" rx="14" tabindex="0" role="button" aria-label="Local 86, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-87" x="1633" y="1051" width="136" height="161" rx="14" tabindex="0" role="button" aria-label="Local 87, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-88" x="1677" y="925" width="141" height="155" rx="14" tabindex="0" role="button" aria-label="Local 88, pasillo 3"></rect>
-            <rect class="local-hitbox" data-id="local-89" x="396" y="1376" width="102" height="115" rx="14" tabindex="0" role="button" aria-label="Local 89, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-90" x="432" y="1487" width="101" height="116" rx="14" tabindex="0" role="button" aria-label="Local 90, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-91" x="654" y="1444" width="97" height="101" rx="14" tabindex="0" role="button" aria-label="Local 91, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-92" x="697" y="1557" width="111" height="112" rx="14" tabindex="0" role="button" aria-label="Local 92, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-93" x="756" y="1474" width="85" height="91" rx="14" tabindex="0" role="button" aria-label="Local 93, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-94" x="786" y="1233" width="75" height="108" rx="14" tabindex="0" role="button" aria-label="Local 94, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-95" x="844" y="1496" width="79" height="93" rx="14" tabindex="0" role="button" aria-label="Local 95, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-96" x="870" y="1253" width="74" height="107" rx="14" tabindex="0" role="button" aria-label="Local 96, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-97" x="928" y="1517" width="73" height="91" rx="14" tabindex="0" role="button" aria-label="Local 97, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-98" x="948" y="1275" width="74" height="107" rx="14" tabindex="0" role="button" aria-label="Local 98, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-99" x="1008" y="1540" width="76" height="92" rx="14" tabindex="0" role="button" aria-label="Local 99, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-100" x="1026" y="1295" width="75" height="107" rx="14" tabindex="0" role="button" aria-label="Local 100, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-101" x="1090" y="1558" width="71" height="94" rx="14" tabindex="0" role="button" aria-label="Local 101, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-102" x="1106" y="1317" width="74" height="107" rx="14" tabindex="0" role="button" aria-label="Local 102, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-103" x="1165" y="1229" width="90" height="99" rx="14" tabindex="0" role="button" aria-label="Local 103, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-104" x="1184" y="1341" width="74" height="106" rx="14" tabindex="0" role="button" aria-label="Local 104, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-105" x="1259" y="1255" width="90" height="98" rx="14" tabindex="0" role="button" aria-label="Local 105, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-106" x="1266" y="1361" width="74" height="106" rx="14" tabindex="0" role="button" aria-label="Local 106, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-107" x="1344" y="1384" width="91" height="104" rx="14" tabindex="0" role="button" aria-label="Local 107, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-108" x="1358" y="1281" width="90" height="96" rx="14" tabindex="0" role="button" aria-label="Local 108, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-109" x="1494" y="1507" width="95" height="147" rx="14" tabindex="0" role="button" aria-label="Local 109, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-110" x="1537" y="1337" width="102" height="178" rx="14" tabindex="0" role="button" aria-label="Local 110, pasillo 4"></rect>
-            <rect class="local-hitbox" data-id="local-111" x="517" y="1810" width="153" height="110" rx="14" tabindex="0" role="button" aria-label="Local 111, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-112" x="668" y="1838" width="111" height="103" rx="14" tabindex="0" role="button" aria-label="Local 112, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-113" x="778" y="1864" width="111" height="101" rx="14" tabindex="0" role="button" aria-label="Local 113, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-114" x="814" y="1587" width="88" height="105" rx="14" tabindex="0" role="button" aria-label="Local 114, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-115" x="886" y="1892" width="110" height="96" rx="14" tabindex="0" role="button" aria-label="Local 115, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-116" x="907" y="1609" width="89" height="107" rx="14" tabindex="0" role="button" aria-label="Local 116, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-117" x="996" y="1913" width="110" height="96" rx="14" tabindex="0" role="button" aria-label="Local 117, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-118" x="998" y="1637" width="85" height="102" rx="14" tabindex="0" role="button" aria-label="Local 118, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-119" x="1086" y="1659" width="88" height="105" rx="14" tabindex="0" role="button" aria-label="Local 119, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-120" x="1104" y="1937" width="104" height="92" rx="14" tabindex="0" role="button" aria-label="Local 120, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-121" x="1165" y="1580" width="71" height="91" rx="14" tabindex="0" role="button" aria-label="Local 121, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-122" x="1172" y="1681" width="89" height="106" rx="14" tabindex="0" role="button" aria-label="Local 122, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-123" x="1210" y="1960" width="104" height="91" rx="14" tabindex="0" role="button" aria-label="Local 123, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-124" x="1239" y="1597" width="65" height="91" rx="14" tabindex="0" role="button" aria-label="Local 124, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-125" x="1266" y="1705" width="89" height="106" rx="14" tabindex="0" role="button" aria-label="Local 125, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-126" x="1307" y="1616" width="71" height="90" rx="14" tabindex="0" role="button" aria-label="Local 126, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-127" x="1422" y="1930" width="75" height="156" rx="14" tabindex="0" role="button" aria-label="Local 127, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-128" x="1436" y="1787" width="79" height="145" rx="14" tabindex="0" role="button" aria-label="Local 128, pasillo 5"></rect>
-            <rect class="local-hitbox" data-id="local-129" x="1460" y="1645" width="91" height="144" rx="14" tabindex="0" role="button" aria-label="Local 129, pasillo 5"></rect>
+        <!-- Locales de prueba configurados en JS -->
+        <rect class="local-hitbox" data-id="local-1" x="24" y="146" width="201" height="106" rx="14"></rect>
+        <rect class="local-hitbox" data-id="local-2" x="99" y="366" width="101" height="114" rx="14"></rect>
+        <rect class="local-hitbox" data-id="local-3" x="132" y="476" width="102" height="115" rx="14"></rect>
+        
+        <!-- Pega aquí el resto de tus rectángulos (<rect>) del local 4 al 129 -->
     </svg>
   </div>
-</div>
-
-<svg id="connectorSvg"><line id="connectorLine" x1="0" y1="0" x2="0" y2="0"></line></svg>
-
-<div id="callout">
-  <div class="callout-top">
+  
+  <!-- Callout Flotante Modernizado -->
+  <div id="callout">
     <div class="callout-foto" id="callout-foto"></div>
     <div class="callout-info">
       <div class="callout-numero" id="callout-numero"></div>
-      <div class="callout-nombre" id="callout-nombre"></div>
+      <div class="callout-chips" id="callout-chips"></div>
     </div>
   </div>
-  <div class="callout-chips" id="callout-chips"></div>
-  <button class="callout-btn" id="callout-btn">Ver perfil completo</button>
 </div>
 
+<!-- Modal Principal -->
 <div id="modal-backdrop">
-  <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <button id="modal-close" aria-label="Cerrar">&times;</button>
-    <div id="modal-foto"></div>
-    <div id="modal-badge"></div>
-    <div id="modal-numero"></div>
-    <h2 id="modal-title"></h2>
-    <div id="modal-extra"></div>
-    <div id="modal-chips"></div>
-    <p id="modal-desc"></p>
-    <a id="modal-whatsapp" href="#" target="_blank" rel="noopener">Contactar por WhatsApp</a>
+  <div id="modal-container">
+    <button id="modal-close">&times;</button>
+    <!-- Aquí se inyectará el HTML de los templates -->
+    <div id="modal-dynamic-content"></div>
   </div>
 </div>
 
+<!-- =========================================================
+     ZONA DE PLANTILLAS (Reemplaza el interior con tus archivos)
+     ========================================================= -->
+
+<!-- PLANTILLA: PLAN NORMAL -->
+<template id="tpl-normal">
+  <div class="plan-card-container">
+    <div class="card-header-bg"></div>
+    <div class="card-avatar-wrap">
+      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200" class="card-avatar">
+    </div>
+    <div class="card-body">
+      <h2 class="card-title" data-bind="nombre">Nombre Local</h2>
+      <p class="card-desc">Espacio esencial en el tianguis.</p>
+      <div class="normal-grid">
+        <div class="normal-thumb wide"><img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800"></div>
+        <div class="normal-thumb"><img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300"></div>
+        <div class="normal-thumb"><img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=300"></div>
+      </div>
+      <div class="footer-info">🕒 Sáb - Dom 10:00 - 17:00</div>
+    </div>
+  </div>
+</template>
+
+<!-- PLANTILLA: PLAN PLUS -->
+<template id="tpl-plus">
+  <div class="plus-card">
+    <div class="plus-header">
+      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200" class="plus-avatar">
+    </div>
+    <div class="plus-body">
+      <h1 data-bind="nombre" style="font-size: 1.6rem; margin-bottom: 6px;">Tienda Plus</h1>
+      <p style="color: #666; margin-bottom: 16px;">Tu espacio mejorado en el tianguis.</p>
+      <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800" style="width: 100%; border-radius: 16px; margin-bottom: 20px;">
+      <a href="#" class="btn-whatsapp-main">💬 Contactar por WhatsApp</a>
+    </div>
+  </div>
+</template>
+
+<!-- PLANTILLA: PLAN PREMIUM -->
+<template id="tpl-premium">
+  <div class="profile-card">
+    <div class="premium-banner" style="background-image: url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800');">
+        <div class="premium-logo"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200"></div>
+    </div>
+    <div style="padding: 70px 30px 25px; text-align: center;">
+        <h1 data-bind="nombre" style="font-size: 1.8rem; margin-bottom: 8px;">Boutique Premium</h1>
+        <p style="color: #777;">Espacio premium en el tianguis con atención preferencial.</p>
+    </div>
+    
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="openTab(event, 'catalogo')">Catálogo</button>
+        <button class="tab-btn" onclick="openTab(event, 'info')">Info</button>
+    </div>
+
+    <!-- Pestaña Catálogo (Simplificada para el ejemplo, pega tu HTML completo aquí) -->
+    <div id="catalogo" class="tab-content active">
+        <div class="filter-pills">
+            <div class="pill active" onclick="openFilter(event, 'filtro-todo')">Todo</div>
+            <div class="pill" onclick="openFilter(event, 'filtro-bolsos')">Bolsos</div>
+        </div>
+        
+        <div id="filtro-todo" class="sub-tab-content active" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px;">
+            <div style="background: #fff; border: 1px solid #eaeaea; border-radius: 14px; padding: 12px; display: flex; flex-direction: column;">
+                
+                <!-- Slide 1 -->
+                <div class="prod-slide active">
+                    <div style="position: relative; margin-bottom: 10px; border-radius: 10px; overflow: hidden;">
+                        <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)" style="position: absolute; top:50%; transform:translateY(-50%); left:5px; background: rgba(0,0,0,0.4); color:#fff; border:none; width:24px; height:24px; border-radius:50%; z-index:5;">❮</button>
+                        <img src="https://images.unsplash.com/photo-1590689627947-66c3a165fc34?w=400" style="width:100%; aspect-ratio:1/1; object-fit:cover;">
+                        <button class="gallery-btn next" onclick="changeProductSlide(this, 1)" style="position: absolute; top:50%; transform:translateY(-50%); right:5px; background: rgba(0,0,0,0.4); color:#fff; border:none; width:24px; height:24px; border-radius:50%; z-index:5;">❯</button>
+                    </div>
+                    <div style="font-weight: 600; font-size: 0.9rem;">Bolsa Tote Piel</div>
+                    <div style="font-weight: 800; font-size: 1.1rem; color: #c5a059;">$590 MXN</div>
+                </div>
+
+                <!-- Slide 2 (Sincronizado) -->
+                <div class="prod-slide">
+                    <div style="position: relative; margin-bottom: 10px; border-radius: 10px; overflow: hidden;">
+                        <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)" style="position: absolute; top:50%; transform:translateY(-50%); left:5px; background: rgba(0,0,0,0.4); color:#fff; border:none; width:24px; height:24px; border-radius:50%; z-index:5;">❮</button>
+                        <img src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=400" style="width:100%; aspect-ratio:1/1; object-fit:cover;">
+                        <button class="gallery-btn next" onclick="changeProductSlide(this, 1)" style="position: absolute; top:50%; transform:translateY(-50%); right:5px; background: rgba(0,0,0,0.4); color:#fff; border:none; width:24px; height:24px; border-radius:50%; z-index:5;">❯</button>
+                    </div>
+                    <div style="font-weight: 600; font-size: 0.9rem;">Bolso Cruzado Negro</div>
+                    <div style="font-weight: 800; font-size: 1.1rem; color: #c5a059;">$450 MXN</div>
+                </div>
+                
+            </div>
+        </div>
+        
+        <div id="filtro-bolsos" class="sub-tab-content">
+            <p>Sección de bolsos...</p>
+        </div>
+    </div>
+    
+    <div id="info" class="tab-content">
+        <h3>Sobre nosotros</h3>
+        <p>Somos un local con 5 años de experiencia.</p>
+    </div>
+  </div>
+</template>
+
 <script>
-(function () {
-  "use strict";
-
-  /* =====================================================================
-     DATOS DE LOS LOCALES — reemplaza estos valores con la información real
-     de cada comerciante conforme la vayas capturando.
-
-     Campos por local:
-       numero, pasillo   -> ubicación (se llenan solos, no los toques)
-       nombre            -> nombre del negocio
-       categoria         -> categoría principal (debe coincidir con una
-                             de las CATEGORIAS de abajo para que el filtro
-                             funcione)
-       categorias_clave  -> lista corta de etiquetas para la tarjeta rápida
-       descripcion       -> texto largo, solo se ve en el perfil completo
-       imagen            -> URL de la foto/logo del local (circular). Si se
-                             deja vacío, se muestra un círculo con la inicial
-                             del nombre como respaldo.
-       plan              -> "normal" | "plus" | "premium"
-       vinculado_a       -> si este local es el mismo negocio que otro local
-                             (ej. una señora que renta dos puestos en pasillos
-                             distintos), pon aquí el id del local principal,
-                             ej. "local-14". Ambos mostrarán el mismo perfil.
-       whatsapp          -> número a 12-13 dígitos, sin espacios ni signos
-       mensaje           -> mensaje precargado al abrir WhatsApp
-  ========================================================================= */
-  const CATEGORIAS = ["Ropa", "Comida", "Electrónicos", "Juguetes", "Accesorios", "Calzado", "Reparaciones","Hogar","Cosméticos","Equipo Táctico","Ropa Deportiva","Otros"];
+  // ==========================================
+  // LÓGICA DEL MAPA Y MODALES DINÁMICOS
+  // ==========================================
+  const CATEGORIAS = ["Ropa", "Comida", "Calzado", "Accesorios", "Otros"];
 
   const shopsData = {
-        "local-1": {
-                "numero": 1,
-                "pasillo": 1,
-                "nombre": "Tacos el loco",
-                "categoria": "Comida",
-                "categorias_clave": [
-                        "Comida"
-                ],
-               
-        },
-        "local-2": {
-                "numero": 2,
-                "pasillo": 1,
-                "nombre": "Local 2",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "plus",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-2) en Tianguis Digital y quiero más información."
-        },
-        "local-3": {
-                "numero": 3,
-                "pasillo": 1,
-                "nombre": "Local 3",
-                "categoria": "Comida",
-                "categorias_clave": [
-                        "Comida"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-3) en Tianguis Digital y quiero más información."
-        },
-        "local-4": {
-                "numero": 4,
-                "pasillo": 1,
-                "nombre": "Local 4",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-4) en Tianguis Digital y quiero más información."
-        },
-        "local-5": {
-                "numero": 5,
-                "pasillo": 1,
-                "nombre": "Local 5",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-5) en Tianguis Digital y quiero más información."
-        },
-        "local-6": {
-                "numero": 6,
-                "pasillo": 1,
-                "nombre": "Local 6",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-6) en Tianguis Digital y quiero más información."
-        },
-        "local-7": {
-                "numero": 7,
-                "pasillo": 1,
-                "nombre": "Local 7",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-7) en Tianguis Digital y quiero más información."
-        },
-        "local-8": {
-                "numero": 8,
-                "pasillo": 1,
-                "nombre": "Local 8",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-8) en Tianguis Digital y quiero más información."
-        },
-        "local-9": {
-                "numero": 9,
-                "pasillo": 1,
-                "nombre": "Local 9",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-9) en Tianguis Digital y quiero más información."
-        },
-        "local-10": {
-                "numero": 10,
-                "pasillo": 1,
-                "nombre": "Local 10",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-10) en Tianguis Digital y quiero más información."
-        },
-        "local-11": {
-                "numero": 11,
-                "pasillo": 1,
-                "nombre": "Local 11",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-11) en Tianguis Digital y quiero más información."
-        },
-        "local-12": {
-                "numero": 12,
-                "pasillo": 1,
-                "nombre": "Local 12",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-12) en Tianguis Digital y quiero más información."
-        },
-        "local-13": {
-                "numero": 13,
-                "pasillo": 1,
-                "nombre": "Local 13",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-13) en Tianguis Digital y quiero más información."
-        },
-        "local-14": {
-                "numero": 14,
-                "pasillo": 1,
-                "nombre": "Local 14",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-14) en Tianguis Digital y quiero más información."
-        },
-        "local-15": {
-                "numero": 15,
-                "pasillo": 1,
-                "nombre": "Local 15",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-15) en Tianguis Digital y quiero más información."
-        },
-        "local-16": {
-                "numero": 16,
-                "pasillo": 1,
-                "nombre": "Local 16",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-16) en Tianguis Digital y quiero más información."
-        },
-        "local-17": {
-                "numero": 17,
-                "pasillo": 1,
-                "nombre": "Local 17",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-17) en Tianguis Digital y quiero más información."
-        },
-        "local-18": {
-                "numero": 18,
-                "pasillo": 1,
-                "nombre": "Local 18",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-18) en Tianguis Digital y quiero más información."
-        },
-        "local-19": {
-                "numero": 19,
-                "pasillo": 1,
-                "nombre": "Local 19",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-19) en Tianguis Digital y quiero más información."
-        },
-        "local-20": {
-                "numero": 20,
-                "pasillo": 1,
-                "nombre": "Local 20",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-20) en Tianguis Digital y quiero más información."
-        },
-        "local-21": {
-                "numero": 21,
-                "pasillo": 1,
-                "nombre": "Local 21",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-21) en Tianguis Digital y quiero más información."
-        },
-        "local-22": {
-                "numero": 22,
-                "pasillo": 1,
-                "nombre": "Local 22",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-22) en Tianguis Digital y quiero más información."
-        },
-        "local-23": {
-                "numero": 23,
-                "pasillo": 1,
-                "nombre": "Local 23",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-23) en Tianguis Digital y quiero más información."
-        },
-        "local-24": {
-                "numero": 24,
-                "pasillo": 1,
-                "nombre": "Local 24",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-24) en Tianguis Digital y quiero más información."
-        },
-        "local-25": {
-                "numero": 25,
-                "pasillo": 1,
-                "nombre": "Local 25",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-25) en Tianguis Digital y quiero más información."
-        },
-        "local-26": {
-                "numero": 26,
-                "pasillo": 1,
-                "nombre": "Local 26",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-26) en Tianguis Digital y quiero más información."
-        },
-        "local-27": {
-                "numero": 27,
-                "pasillo": 1,
-                "nombre": "Local 27",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-27) en Tianguis Digital y quiero más información."
-        },
-        "local-28": {
-                "numero": 28,
-                "pasillo": 1,
-                "nombre": "Local 28",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-28) en Tianguis Digital y quiero más información."
-        },
-        "local-29": {
-                "numero": 29,
-                "pasillo": 1,
-                "nombre": "Local 29",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-29) en Tianguis Digital y quiero más información."
-        },
-        "local-30": {
-                "numero": 30,
-                "pasillo": 1,
-                "nombre": "Local 30",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-30) en Tianguis Digital y quiero más información."
-        },
-        "local-31": {
-                "numero": 31,
-                "pasillo": 1,
-                "nombre": "Local 31",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-31) en Tianguis Digital y quiero más información."
-        },
-        "local-32": {
-                "numero": 32,
-                "pasillo": 1,
-                "nombre": "Local 32",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-32) en Tianguis Digital y quiero más información."
-        },
-        "local-33": {
-                "numero": 33,
-                "pasillo": 1,
-                "nombre": "Local 33",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-33) en Tianguis Digital y quiero más información."
-        },
-        "local-34": {
-                "numero": 34,
-                "pasillo": 1,
-                "nombre": "Local 34",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-34) en Tianguis Digital y quiero más información."
-        },
-        "local-35": {
-                "numero": 35,
-                "pasillo": 2,
-                "nombre": "Local 35",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-35) en Tianguis Digital y quiero más información."
-        },
-        "local-36": {
-                "numero": 36,
-                "pasillo": 2,
-                "nombre": "Local 36",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-36) en Tianguis Digital y quiero más información."
-        },
-        "local-37": {
-                "numero": 37,
-                "pasillo": 2,
-                "nombre": "Local 37",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-37) en Tianguis Digital y quiero más información."
-        },
-        "local-38": {
-                "numero": 38,
-                "pasillo": 2,
-                "nombre": "Local 38",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-38) en Tianguis Digital y quiero más información."
-        },
-        "local-39": {
-                "numero": 39,
-                "pasillo": 2,
-                "nombre": "Local 39",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-39) en Tianguis Digital y quiero más información."
-        },
-        "local-40": {
-                "numero": 40,
-                "pasillo": 2,
-                "nombre": "Local 40",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-40) en Tianguis Digital y quiero más información."
-        },
-        "local-41": {
-                "numero": 41,
-                "pasillo": 2,
-                "nombre": "Local 41",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-41) en Tianguis Digital y quiero más información."
-        },
-        "local-42": {
-                "numero": 42,
-                "pasillo": 2,
-                "nombre": "Local 42",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-42) en Tianguis Digital y quiero más información."
-        },
-        "local-43": {
-                "numero": 43,
-                "pasillo": 2,
-                "nombre": "Local 43",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-43) en Tianguis Digital y quiero más información."
-        },
-        "local-44": {
-                "numero": 44,
-                "pasillo": 2,
-                "nombre": "Local 44",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-44) en Tianguis Digital y quiero más información."
-        },
-        "local-45": {
-                "numero": 45,
-                "pasillo": 2,
-                "nombre": "Local 45",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-45) en Tianguis Digital y quiero más información."
-        },
-        "local-46": {
-                "numero": 46,
-                "pasillo": 2,
-                "nombre": "Local 46",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-46) en Tianguis Digital y quiero más información."
-        },
-        "local-47": {
-                "numero": 47,
-                "pasillo": 2,
-                "nombre": "Local 47",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-47) en Tianguis Digital y quiero más información."
-        },
-        "local-48": {
-                "numero": 48,
-                "pasillo": 2,
-                "nombre": "Local 48",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-48) en Tianguis Digital y quiero más información."
-        },
-        "local-49": {
-                "numero": 49,
-                "pasillo": 2,
-                "nombre": "Local 49",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-49) en Tianguis Digital y quiero más información."
-        },
-        "local-50": {
-                "numero": 50,
-                "pasillo": 2,
-                "nombre": "Local 50",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-50) en Tianguis Digital y quiero más información."
-        },
-        "local-51": {
-                "numero": 51,
-                "pasillo": 2,
-                "nombre": "Local 51",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-51) en Tianguis Digital y quiero más información."
-        },
-        "local-52": {
-                "numero": 52,
-                "pasillo": 2,
-                "nombre": "Local 52",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-52) en Tianguis Digital y quiero más información."
-        },
-        "local-53": {
-                "numero": 53,
-                "pasillo": 2,
-                "nombre": "Local 53",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-53) en Tianguis Digital y quiero más información."
-        },
-        "local-54": {
-                "numero": 54,
-                "pasillo": 2,
-                "nombre": "Local 54",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-54) en Tianguis Digital y quiero más información."
-        },
-        "local-55": {
-                "numero": 55,
-                "pasillo": 2,
-                "nombre": "Local 55",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-55) en Tianguis Digital y quiero más información."
-        },
-        "local-56": {
-                "numero": 56,
-                "pasillo": 2,
-                "nombre": "Local 56",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-56) en Tianguis Digital y quiero más información."
-        },
-        "local-57": {
-                "numero": 57,
-                "pasillo": 2,
-                "nombre": "Local 57",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-57) en Tianguis Digital y quiero más información."
-        },
-        "local-58": {
-                "numero": 58,
-                "pasillo": 2,
-                "nombre": "Local 58",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-58) en Tianguis Digital y quiero más información."
-        },
-        "local-59": {
-                "numero": 59,
-                "pasillo": 2,
-                "nombre": "Local 59",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-59) en Tianguis Digital y quiero más información."
-        },
-        "local-60": {
-                "numero": 60,
-                "pasillo": 2,
-                "nombre": "Local 60",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-60) en Tianguis Digital y quiero más información."
-        },
-        "local-61": {
-                "numero": 61,
-                "pasillo": 2,
-                "nombre": "Local 61",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-61) en Tianguis Digital y quiero más información."
-        },
-        "local-62": {
-                "numero": 62,
-                "pasillo": 2,
-                "nombre": "Local 62",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-62) en Tianguis Digital y quiero más información."
-        },
-        "local-63": {
-                "numero": 63,
-                "pasillo": 3,
-                "nombre": "Local 63",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-63) en Tianguis Digital y quiero más información."
-        },
-        "local-64": {
-                "numero": 64,
-                "pasillo": 3,
-                "nombre": "Local 64",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-64) en Tianguis Digital y quiero más información."
-        },
-        "local-65": {
-                "numero": 65,
-                "pasillo": 3,
-                "nombre": "Local 65",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-65) en Tianguis Digital y quiero más información."
-        },
-        "local-66": {
-                "numero": 66,
-                "pasillo": 3,
-                "nombre": "Local 66",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-66) en Tianguis Digital y quiero más información."
-        },
-        "local-67": {
-                "numero": 67,
-                "pasillo": 3,
-                "nombre": "Local 67",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-67) en Tianguis Digital y quiero más información."
-        },
-        "local-68": {
-                "numero": 68,
-                "pasillo": 3,
-                "nombre": "Local 68",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-68) en Tianguis Digital y quiero más información."
-        },
-        "local-69": {
-                "numero": 69,
-                "pasillo": 3,
-                "nombre": "Local 69",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-69) en Tianguis Digital y quiero más información."
-        },
-        "local-70": {
-                "numero": 70,
-                "pasillo": 3,
-                "nombre": "Local 70",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-70) en Tianguis Digital y quiero más información."
-        },
-        "local-71": {
-                "numero": 71,
-                "pasillo": 3,
-                "nombre": "Local 71",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-71) en Tianguis Digital y quiero más información."
-        },
-        "local-72": {
-                "numero": 72,
-                "pasillo": 3,
-                "nombre": "Local 72",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-72) en Tianguis Digital y quiero más información."
-        },
-        "local-73": {
-                "numero": 73,
-                "pasillo": 3,
-                "nombre": "Local 73",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-73) en Tianguis Digital y quiero más información."
-        },
-        "local-74": {
-                "numero": 74,
-                "pasillo": 3,
-                "nombre": "Local 74",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-74) en Tianguis Digital y quiero más información."
-        },
-        "local-75": {
-                "numero": 75,
-                "pasillo": 3,
-                "nombre": "Local 75",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-75) en Tianguis Digital y quiero más información."
-        },
-        "local-76": {
-                "numero": 76,
-                "pasillo": 3,
-                "nombre": "Local 76",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-76) en Tianguis Digital y quiero más información."
-        },
-        "local-77": {
-                "numero": 77,
-                "pasillo": 3,
-                "nombre": "Local 77",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-77) en Tianguis Digital y quiero más información."
-        },
-        "local-78": {
-                "numero": 78,
-                "pasillo": 3,
-                "nombre": "Local 78",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-78) en Tianguis Digital y quiero más información."
-        },
-        "local-79": {
-                "numero": 79,
-                "pasillo": 3,
-                "nombre": "Local 79",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-79) en Tianguis Digital y quiero más información."
-        },
-        "local-80": {
-                "numero": 80,
-                "pasillo": 3,
-                "nombre": "Local 80",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-80) en Tianguis Digital y quiero más información."
-        },
-        "local-81": {
-                "numero": 81,
-                "pasillo": 3,
-                "nombre": "Local 81",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-81) en Tianguis Digital y quiero más información."
-        },
-        "local-82": {
-                "numero": 82,
-                "pasillo": 3,
-                "nombre": "Local 82",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-82) en Tianguis Digital y quiero más información."
-        },
-        "local-83": {
-                "numero": 83,
-                "pasillo": 3,
-                "nombre": "Local 83",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-83) en Tianguis Digital y quiero más información."
-        },
-        "local-84": {
-                "numero": 84,
-                "pasillo": 3,
-                "nombre": "Local 84",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-84) en Tianguis Digital y quiero más información."
-        },
-        "local-85": {
-                "numero": 85,
-                "pasillo": 3,
-                "nombre": "Local 85",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-85) en Tianguis Digital y quiero más información."
-        },
-        "local-86": {
-                "numero": 86,
-                "pasillo": 3,
-                "nombre": "Local 86",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-86) en Tianguis Digital y quiero más información."
-        },
-        "local-87": {
-                "numero": 87,
-                "pasillo": 3,
-                "nombre": "Local 87",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-87) en Tianguis Digital y quiero más información."
-        },
-        "local-88": {
-                "numero": 88,
-                "pasillo": 3,
-                "nombre": "Local 88",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-88) en Tianguis Digital y quiero más información."
-        },
-        "local-89": {
-                "numero": 89,
-                "pasillo": 4,
-                "nombre": "Local 89",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-89) en Tianguis Digital y quiero más información."
-        },
-        "local-90": {
-                "numero": 90,
-                "pasillo": 4,
-                "nombre": "Local 90",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-90) en Tianguis Digital y quiero más información."
-        },
-        "local-91": {
-                "numero": 91,
-                "pasillo": 4,
-                "nombre": "Local 91",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-91) en Tianguis Digital y quiero más información."
-        },
-        "local-92": {
-                "numero": 92,
-                "pasillo": 4,
-                "nombre": "Local 92",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-92) en Tianguis Digital y quiero más información."
-        },
-        "local-93": {
-                "numero": 93,
-                "pasillo": 4,
-                "nombre": "Local 93",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-93) en Tianguis Digital y quiero más información."
-        },
-        "local-94": {
-                "numero": 94,
-                "pasillo": 4,
-                "nombre": "Local 94",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-94) en Tianguis Digital y quiero más información."
-        },
-        "local-95": {
-                "numero": 95,
-                "pasillo": 4,
-                "nombre": "Local 95",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-95) en Tianguis Digital y quiero más información."
-        },
-        "local-96": {
-                "numero": 96,
-                "pasillo": 4,
-                "nombre": "Local 96",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-96) en Tianguis Digital y quiero más información."
-        },
-        "local-97": {
-                "numero": 97,
-                "pasillo": 4,
-                "nombre": "Local 97",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-97) en Tianguis Digital y quiero más información."
-        },
-        "local-98": {
-                "numero": 98,
-                "pasillo": 4,
-                "nombre": "Local 98",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-98) en Tianguis Digital y quiero más información."
-        },
-        "local-99": {
-                "numero": 99,
-                "pasillo": 4,
-                "nombre": "Local 99",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-99) en Tianguis Digital y quiero más información."
-        },
-        "local-100": {
-                "numero": 100,
-                "pasillo": 4,
-                "nombre": "Local 100",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-100) en Tianguis Digital y quiero más información."
-        },
-        "local-101": {
-                "numero": 101,
-                "pasillo": 4,
-                "nombre": "Local 101",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-101) en Tianguis Digital y quiero más información."
-        },
-        "local-102": {
-                "numero": 102,
-                "pasillo": 4,
-                "nombre": "Local 102",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-102) en Tianguis Digital y quiero más información."
-        },
-        "local-103": {
-                "numero": 103,
-                "pasillo": 4,
-                "nombre": "Local 103",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-103) en Tianguis Digital y quiero más información."
-        },
-        "local-104": {
-                "numero": 104,
-                "pasillo": 4,
-                "nombre": "Local 104",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-104) en Tianguis Digital y quiero más información."
-        },
-        "local-105": {
-                "numero": 105,
-                "pasillo": 4,
-                "nombre": "Local 105",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-105) en Tianguis Digital y quiero más información."
-        },
-        "local-106": {
-                "numero": 106,
-                "pasillo": 4,
-                "nombre": "Local 106",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-106) en Tianguis Digital y quiero más información."
-        },
-        "local-107": {
-                "numero": 107,
-                "pasillo": 4,
-                "nombre": "Local 107",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-107) en Tianguis Digital y quiero más información."
-        },
-        "local-108": {
-                "numero": 108,
-                "pasillo": 4,
-                "nombre": "Local 108",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-108) en Tianguis Digital y quiero más información."
-        },
-        "local-109": {
-                "numero": 109,
-                "pasillo": 4,
-                "nombre": "Local 109",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-109) en Tianguis Digital y quiero más información."
-        },
-        "local-110": {
-                "numero": 110,
-                "pasillo": 4,
-                "nombre": "Local 110",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-110) en Tianguis Digital y quiero más información."
-        },
-        "local-111": {
-                "numero": 111,
-                "pasillo": 5,
-                "nombre": "Local 111",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-111) en Tianguis Digital y quiero más información."
-        },
-        "local-112": {
-                "numero": 112,
-                "pasillo": 5,
-                "nombre": "Local 112",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-112) en Tianguis Digital y quiero más información."
-        },
-        "local-113": {
-                "numero": 113,
-                "pasillo": 5,
-                "nombre": "Local 113",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-113) en Tianguis Digital y quiero más información."
-        },
-        "local-114": {
-                "numero": 114,
-                "pasillo": 5,
-                "nombre": "Local 114",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-114) en Tianguis Digital y quiero más información."
-        },
-        "local-115": {
-                "numero": 115,
-                "pasillo": 5,
-                "nombre": "Local 115",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-115) en Tianguis Digital y quiero más información."
-        },
-        "local-116": {
-                "numero": 116,
-                "pasillo": 5,
-                "nombre": "Local 116",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-116) en Tianguis Digital y quiero más información."
-        },
-        "local-117": {
-                "numero": 117,
-                "pasillo": 5,
-                "nombre": "Local 117",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-117) en Tianguis Digital y quiero más información."
-        },
-        "local-118": {
-                "numero": 118,
-                "pasillo": 5,
-                "nombre": "Local 118",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-118) en Tianguis Digital y quiero más información."
-        },
-        "local-119": {
-                "numero": 119,
-                "pasillo": 5,
-                "nombre": "Local 119",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-119) en Tianguis Digital y quiero más información."
-        },
-        "local-120": {
-                "numero": 120,
-                "pasillo": 5,
-                "nombre": "Local 120",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-120) en Tianguis Digital y quiero más información."
-        },
-        "local-121": {
-                "numero": 121,
-                "pasillo": 5,
-                "nombre": "Local 121",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-121) en Tianguis Digital y quiero más información."
-        },
-        "local-122": {
-                "numero": 122,
-                "pasillo": 5,
-                "nombre": "Local 122",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-122) en Tianguis Digital y quiero más información."
-        },
-        "local-123": {
-                "numero": 123,
-                "pasillo": 5,
-                "nombre": "Local 123",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-123) en Tianguis Digital y quiero más información."
-        },
-        "local-124": {
-                "numero": 124,
-                "pasillo": 5,
-                "nombre": "Local 124",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-124) en Tianguis Digital y quiero más información."
-        },
-        "local-125": {
-                "numero": 125,
-                "pasillo": 5,
-                "nombre": "Local 125",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-125) en Tianguis Digital y quiero más información."
-        },
-        "local-126": {
-                "numero": 126,
-                "pasillo": 5,
-                "nombre": "Local 126",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-126) en Tianguis Digital y quiero más información."
-        },
-        "local-127": {
-                "numero": 127,
-                "pasillo": 5,
-                "nombre": "Local 127",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-127) en Tianguis Digital y quiero más información."
-        },
-        "local-128": {
-                "numero": 128,
-                "pasillo": 5,
-                "nombre": "Local 128",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-128) en Tianguis Digital y quiero más información."
-        },
-        "local-129": {
-                "numero": 129,
-                "pasillo": 5,
-                "nombre": "Local 129",
-                "categoria": "Por definir",
-                "categorias_clave": [
-                        "Por definir"
-                ],
-                "descripcion": "Información pendiente por capturar.",
-                "imagen": "",
-                "plan": "normal",
-                "vinculado_a": null,
-                "whatsapp": "5215500000000",
-                "mensaje": "Hola, vi tu local (local-129) en Tianguis Digital y quiero más información."
-        }
-};
-
-  const FALLBACK_SHOP = {
-    numero: "?", pasillo: "?",
-    nombre: "Local sin información",
-    categoria: "Sin categoría",
-    categorias_clave: [],
-    descripcion: "Todavía no hay datos capturados para este local.",
-    imagen: "", plan: "normal", vinculado_a: null,
-    whatsapp: "", mensaje: ""
+    // 3 Locales de Prueba
+    "local-1": { nombre: "Boutique Elegance", categoria: "Ropa", plan: "premium" },
+    "local-2": { nombre: "Zapatos Plus", categoria: "Calzado", plan: "plus" },
+    "local-3": { nombre: "Tacos el Loco", categoria: "Comida", plan: "normal" }
   };
 
-  const isTouchDevice = window.matchMedia("(hover: none), (pointer: coarse)").matches;
-
   const svg = document.getElementById("overlaySvg");
-  const mapFrame = document.getElementById("mapFrame");
-  const mapImage = document.getElementById("mapImage");
-
   const callout = document.getElementById("callout");
-  const calloutFoto = document.getElementById("callout-foto");
-  const calloutNumero = document.getElementById("callout-numero");
-  const calloutNombre = document.getElementById("callout-nombre");
-  const calloutChips = document.getElementById("callout-chips");
-  const calloutBtn = document.getElementById("callout-btn");
-  const connectorSvg = document.getElementById("connectorSvg");
-  const connectorLine = document.getElementById("connectorLine");
-
   const modalBackdrop = document.getElementById("modal-backdrop");
-  const modalClose = document.getElementById("modal-close");
-  const modalFoto = document.getElementById("modal-foto");
-  const modalBadge = document.getElementById("modal-badge");
-  const modalNumero = document.getElementById("modal-numero");
-  const modalTitle = document.getElementById("modal-title");
-  const modalExtra = document.getElementById("modal-extra");
-  const modalChips = document.getElementById("modal-chips");
-  const modalDesc = document.getElementById("modal-desc");
-  const modalWhatsapp = document.getElementById("modal-whatsapp");
+  const modalContent = document.getElementById("modal-dynamic-content");
 
-  let calloutOpenId = null;
-
-  // ---- resolución de locales vinculados (mismo negocio, dos puestos) ----
-  function resolveShop(id) {
-    const raw = shopsData[id];
-    if (!raw) return { shop: FALLBACK_SHOP, targetId: id };
-    if (raw.vinculado_a && shopsData[raw.vinculado_a]) {
-      return { shop: shopsData[raw.vinculado_a], targetId: raw.vinculado_a };
-    }
-    return { shop: raw, targetId: id };
-  }
-
-  function initials(name) {
-    return (name || "?").trim().split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase();
-  }
-
-  function setFotoEl(el, shop, size) {
-    el.style.backgroundImage = "none";
-    el.textContent = initials(shop.nombre);
-    if (shop.imagen) {
-      const test = new Image();
-      test.onload = function () {
-        el.style.backgroundImage = "url(" + shop.imagen + ")";
-        el.textContent = "";
-      };
-      test.onerror = function () {
-        el.style.backgroundImage = "none";
-        el.textContent = initials(shop.nombre);
-      };
-      test.src = shop.imagen;
-    }
-  }
-
-  // ---- Tarjeta flotante (callout) ----
-  function positionCallout(hitboxEl) {
-    const frameRect = mapFrame.getBoundingClientRect();
-    const boxRect = hitboxEl.getBoundingClientRect();
-    const anchorX = boxRect.left + boxRect.width / 2;
-    const anchorY = boxRect.top;
-
-    const calloutW = callout.offsetWidth || 240;
-    const calloutH = callout.offsetHeight || 140;
-
-    let left = anchorX - calloutW / 2;
-    left = Math.max(10, Math.min(left, window.innerWidth - calloutW - 10));
-
-    let top = anchorY - calloutH - 22;
-    let lineY2 = top + calloutH;
-    if (top < 10) {
-      // si no cabe arriba, se coloca abajo del local
-      top = boxRect.bottom + 22;
-      lineY2 = top;
-    }
-
-    callout.style.left = Math.round(left) + "px";
-    callout.style.top = Math.round(top) + "px";
-
-    connectorLine.setAttribute("x1", Math.round(anchorX));
-    connectorLine.setAttribute("y1", Math.round(anchorY));
-    connectorLine.setAttribute("x2", Math.round(anchorX));
-    connectorLine.setAttribute("y2", Math.round(lineY2));
-    connectorLine.style.opacity = "1";
-  }
-
-  function showCallout(hitboxEl, id) {
-    const { shop, targetId } = resolveShop(id);
-
-    document.querySelectorAll(".local-hitbox.is-open").forEach(function (el) {
-      el.classList.remove("is-open");
-    });
-    hitboxEl.classList.add("is-open");
-    // si esta vinculado, tambien resalta el otro puesto del mismo negocio
-    if (shop && targetId) {
-      document.querySelectorAll('.local-hitbox[data-id="' + targetId + '"]').forEach(function (el) {
-        el.classList.add("is-open");
-      });
-      Object.keys(shopsData).forEach(function (otherId) {
-        if (shopsData[otherId].vinculado_a === targetId) {
-          const el = svg.querySelector('.local-hitbox[data-id="' + otherId + '"]');
-          if (el) el.classList.add("is-open");
-        }
-      });
-    }
-
-    calloutNumero.textContent = "Local " + shop.numero + " · Pasillo " + shop.pasillo;
-    calloutNombre.textContent = shop.nombre;
-    setFotoEl(calloutFoto, shop, 46);
-    calloutChips.innerHTML = "";
-    (shop.categorias_clave || []).slice(0, 3).forEach(function (cat) {
-      const span = document.createElement("span");
-      span.className = "chip";
-      span.textContent = cat;
-      calloutChips.appendChild(span);
-    });
-
-    callout.classList.add("visible");
-    calloutOpenId = id;
-    calloutBtn.onclick = function () { openModal(id); };
-
-    positionCallout(hitboxEl);
-  }
-
-  function hideCallout() {
-    callout.classList.remove("visible");
-    connectorLine.style.opacity = "0";
-    document.querySelectorAll(".local-hitbox.is-open").forEach(function (el) {
-      el.classList.remove("is-open");
-    });
-    calloutOpenId = null;
-  }
-
-  // ---- Modal (perfil completo) ----
-  function openModal(id) {
-    const { shop } = resolveShop(id);
-
-    modalBadge.className = "";
-    if (shop.plan === "plus") {
-      modalBadge.textContent = "Plus";
-      modalBadge.classList.add("plan-plus");
-    } else {
-      modalBadge.textContent = "";
-    }
-
-    modalNumero.textContent = "Local " + shop.numero + " · Pasillo " + shop.pasillo;
-    modalTitle.textContent = shop.nombre || "Local";
-    setFotoEl(modalFoto, shop, 96);
-
-    modalChips.innerHTML = "";
-    (shop.categorias_clave || []).forEach(function (cat) {
-      const span = document.createElement("span");
-      span.className = "chip";
-      span.textContent = cat;
-      modalChips.appendChild(span);
-    });
-
-    modalDesc.textContent = shop.descripcion || "";
-
-    // campos extra personalizados (cualquier propiedad adicional que el
-    // dueño quiera mostrar, ej. horario, redes sociales, promociones)
-    modalExtra.innerHTML = "";
-    if (shop.extra && Object.keys(shop.extra).length) {
-      Object.entries(shop.extra).forEach(function ([label, valor]) {
-        const p = document.createElement("p");
-        p.innerHTML = "<strong>" + label + ":</strong> " + valor;
-        modalExtra.appendChild(p);
-      });
-      modalExtra.classList.add("visible");
-    } else {
-      modalExtra.classList.remove("visible");
-    }
-
-    if (shop.whatsapp) {
-      const msg = encodeURIComponent(shop.mensaje || ("Hola, me interesa el local " + shop.nombre));
-      modalWhatsapp.href = "https://wa.me/" + shop.whatsapp + "?text=" + msg;
-      modalWhatsapp.style.display = "flex";
-    } else {
-      modalWhatsapp.style.display = "none";
-    }
-
-    hideCallout();
-    modalBackdrop.classList.add("open");
-    document.body.classList.add("modal-open");
-  }
-
-  function closeModal() {
-    modalBackdrop.classList.remove("open");
-    document.body.classList.remove("modal-open");
-  }
-
-  modalClose.addEventListener("click", closeModal);
-  modalBackdrop.addEventListener("click", function (e) {
-    if (e.target === modalBackdrop) closeModal();
-  });
-  document.addEventListener("keydown", function (e) {
-    if (e.key !== "Escape") return;
-    if (modalBackdrop.classList.contains("open")) closeModal();
-    else if (calloutOpenId) hideCallout();
-  });
-
-  // ---- Eventos delegados sobre el SVG (funciona para los 129 locales) ----
-  svg.addEventListener("mouseover", function (e) {
-    if (isTouchDevice) return;
-    const target = e.target.closest(".local-hitbox");
-    if (!target) return;
-    showCallout(target, target.dataset.id);
-  });
-
-  svg.addEventListener("mouseout", function (e) {
-    if (isTouchDevice) return;
-    const target = e.target.closest(".local-hitbox");
-    if (!target) return;
-    hideCallout();
-  });
-
-  svg.addEventListener("click", function (e) {
-    const target = e.target.closest(".local-hitbox");
-    if (!target) return;
-    if (isTouchDevice) {
-      // primer toque: muestra tarjeta rapida. segundo toque sobre el mismo
-      // local: abre el perfil completo directamente.
-      if (calloutOpenId === target.dataset.id) {
-        openModal(target.dataset.id);
-      } else {
-        showCallout(target, target.dataset.id);
-      }
-    } else {
-      openModal(target.dataset.id);
-    }
-  });
-
-  svg.addEventListener("keydown", function (e) {
-    const target = e.target.closest(".local-hitbox");
-    if (!target) return;
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      openModal(target.dataset.id);
-    }
-  });
-
-  // cerrar la tarjeta si se toca/hace clic fuera de ella y fuera del mapa
-  document.addEventListener("click", function (e) {
-    if (!calloutOpenId) return;
-    if (callout.contains(e.target)) return;
-    if (e.target.closest(".local-hitbox")) return;
-    hideCallout();
-  });
-
-  // reposicionar la tarjeta si cambia el tamaño de ventana o hace scroll
-  window.addEventListener("resize", function () {
-    if (!calloutOpenId) return;
-    const el = svg.querySelector('.local-hitbox[data-id="' + calloutOpenId + '"]');
-    if (el) positionCallout(el);
-  });
-  window.addEventListener("scroll", function () {
-    if (!calloutOpenId) return;
-    const el = svg.querySelector('.local-hitbox[data-id="' + calloutOpenId + '"]');
-    if (el) positionCallout(el);
-  }, { passive: true });
-
-  // ---- Fallback si la imagen de fondo no carga ----
-  mapImage.addEventListener("error", function () {
-    mapFrame.innerHTML =
-      '<div style="padding:60px 20px;text-align:center;color:#857F76;">' +
-      'No se pudo cargar la imagen del mapa (mapa-tianguis.png).<br>' +
-      'Verifica que el archivo esté en la misma carpeta que este HTML.' +
-      "</div>";
-  });
-
-  // ---- Filtro de categorías ----
+  // Filtros Básicos
   const filtrosWrap = document.getElementById("filtros");
-  CATEGORIAS.forEach(function (cat) {
+  CATEGORIAS.forEach(cat => {
     const btn = document.createElement("button");
-    btn.className = "filtro-btn";
-    btn.dataset.cat = cat;
-    btn.textContent = cat;
+    btn.className = "filtro-btn"; btn.textContent = cat;
+    btn.onclick = () => {
+      document.querySelectorAll(".filtro-btn").forEach(b => b.classList.remove("activo"));
+      btn.classList.add("activo");
+      document.querySelectorAll(".local-hitbox").forEach(el => {
+        const shop = shopsData[el.dataset.id];
+        el.classList.toggle("dim", !shop || shop.categoria !== cat);
+      });
+    };
     filtrosWrap.appendChild(btn);
   });
 
-  filtrosWrap.addEventListener("click", function (e) {
-    const btn = e.target.closest(".filtro-btn");
-    if (!btn) return;
-
-    const cat = btn.dataset.cat;
-    const yaEstabaActivo = btn.classList.contains("activo");
-    const hitboxes = svg.querySelectorAll(".local-hitbox");
-
-    filtrosWrap.querySelectorAll(".filtro-btn").forEach(function (b) {
-      b.classList.remove("activo");
-    });
-
-    if (yaEstabaActivo) {
-      // se volvió a dar clic sobre la categoría ya activa -> se quita el filtro
-      hitboxes.forEach(function (el) {
-        el.classList.remove("dim", "match");
-      });
-      return;
-    }
-
-    btn.classList.add("activo");
-    hitboxes.forEach(function (el) {
-      const shop = shopsData[el.dataset.id];
-      const coincide = shop && shop.categoria === cat;
-      el.classList.toggle("match", !!coincide);
-      el.classList.toggle("dim", !coincide);
-    });
+  // Callout Flotante (Hover Inteligente)
+  svg.addEventListener("mousemove", (e) => {
+    const target = e.target.closest(".local-hitbox");
+    if (!target) { callout.classList.remove("visible"); return; }
+    
+    const shop = shopsData[target.dataset.id] || { nombre: "Local sin registrar", categoria: "Vacio" };
+    
+    document.getElementById("callout-foto").textContent = shop.nombre.charAt(0).toUpperCase();
+    document.getElementById("callout-numero").textContent = target.dataset.id.replace('-', ' ').toUpperCase();
+    document.getElementById("callout-chips").innerHTML = `<span class="chip">${shop.categoria}</span>`;
+    
+    callout.classList.add("visible");
+    
+    // Seguir al cursor
+    const mapRect = document.getElementById("mapFrame").getBoundingClientRect();
+    let x = e.clientX - mapRect.left + 15;
+    let y = e.clientY - mapRect.top + 15;
+    callout.style.left = `${x}px`;
+    callout.style.top = `${y}px`;
   });
-})();
+
+  svg.addEventListener("mouseleave", () => callout.classList.remove("visible"));
+
+  // Click para Abrir Modal (Inyección de Templates)
+  svg.addEventListener("click", (e) => {
+    const target = e.target.closest(".local-hitbox");
+    if (!target) return;
+    
+    const shop = shopsData[target.dataset.id] || { nombre: "Local Básico", plan: "normal" };
+    
+    // Limpiar modal
+    modalContent.innerHTML = "";
+    
+    // Seleccionar Plantilla
+    let templateId = "tpl-normal"; // Default
+    if(shop.plan === "plus") templateId = "tpl-plus";
+    if(shop.plan === "premium") templateId = "tpl-premium";
+    
+    const template = document.getElementById(templateId);
+    const clone = template.content.cloneNode(true);
+    
+    // Mapeo Básico de Datos (Ejemplo: cambiar nombre si existe atributo data-bind)
+    const titleEl = clone.querySelector('[data-bind="nombre"]');
+    if(titleEl) titleEl.textContent = shop.nombre;
+
+    modalContent.appendChild(clone);
+    modalBackdrop.classList.add("open");
+    document.body.style.overflow = "hidden";
+  });
+
+  // Cerrar Modal
+  document.getElementById("modal-close").onclick = closeModal;
+  modalBackdrop.onclick = (e) => { if (e.target === modalBackdrop) closeModal(); }
+  function closeModal() {
+    modalBackdrop.classList.remove("open");
+    document.body.style.overflow = "auto";
+  }
+
+  // ==========================================
+  // FUNCIONES GLOBALES PARA EL PLAN PREMIUM
+  // ==========================================
+  window.openTab = function(evt, tabName) {
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+      document.getElementById(tabName).classList.add("active");
+      evt.currentTarget.classList.add("active");
+  };
+
+  window.openFilter = function(evt, filterName) {
+      document.querySelectorAll(".sub-tab-content").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".pill").forEach(el => el.classList.remove("active"));
+      document.getElementById(filterName).classList.add("active");
+      evt.currentTarget.classList.add("active");
+  };
+
+  // Carrusel Sincronizado Premium (Auto-detecta la longitud)
+  window.changeProductSlide = function(btn, direction) {
+      const container = btn.closest('.product-card') || btn.parentElement.parentElement;
+      const slides = container.querySelectorAll('.prod-slide');
+      if(slides.length === 0) return;
+      
+      let currentIndex = Array.from(slides).findIndex(slide => slide.classList.contains('active'));
+      slides[currentIndex].classList.remove('active');
+      
+      let nextIndex = (currentIndex + direction + slides.length) % slides.length;
+      slides[nextIndex].classList.add('active');
+  };
 </script>
-<footer class="disclaimer-container">
-  <p class="disclaimer-text">
-    <strong>Aviso de dimensiones y representación:</strong> El plano digital del recinto es una representación ilustrativa. Las proporciones y ubicaciones no son definitivas, por lo que el diseño está sujeto a cambios estructurales sin previo aviso.
-  </p>
-</footer>
 </body>
 </html>
-
-
