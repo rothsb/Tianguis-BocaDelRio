@@ -220,6 +220,31 @@
     position: relative;
     text-align: center;
   }
+
+  /* ---- Modal en modo "perfil por plan" (carga el HTML del plan del
+     local en un iframe, tal cual esta diseñado, sin mezclar sus estilos
+     con los de esta pagina). El ancho se ajusta segun el plan del local
+     via la variable --modal-iframe-w que se define desde JS. ---- */
+  #modal.modal--iframe {
+    max-width: min(var(--modal-iframe-w, 420px), 95vw);
+    max-height: 90vh;
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+    box-shadow: none;
+  }
+  #modal-generic { display: block; }
+  #modal.modal--iframe #modal-generic { display: none; }
+  #modal-iframe {
+    display: none;
+    width: 100%;
+    height: 85vh;
+    border: 0;
+    border-radius: 20px;
+    background: var(--bg-card);
+  }
+  #modal.modal--iframe #modal-iframe { display: block; }
+
   #modal-close {
     position: absolute;
     top: 14px; right: 14px;
@@ -231,8 +256,20 @@
     font-size: 18px;
     cursor: pointer;
     line-height: 1;
+    z-index: 5;
   }
   #modal-close:hover { background: var(--border); }
+  #modal.modal--iframe #modal-close {
+    top: 10px; right: 10px;
+    background: rgba(43,32,20,0.55);
+    color: #fff;
+  }
+  #modal.modal--iframe #modal-close:hover { background: rgba(43,32,20,0.8); }
+
+  @media (max-width: 480px) {
+    #modal.modal--iframe { max-width: 96vw; }
+    #modal-iframe { height: 88vh; }
+  }
   #modal-foto {
     width: 96px; height: 96px;
     border-radius: 50%;
@@ -453,14 +490,25 @@
 <div id="modal-backdrop">
   <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <button id="modal-close" aria-label="Cerrar">&times;</button>
-    <div id="modal-foto"></div>
-    <div id="modal-badge"></div>
-    <div id="modal-numero"></div>
-    <h2 id="modal-title"></h2>
-    <div id="modal-extra"></div>
-    <div id="modal-chips"></div>
-    <p id="modal-desc"></p>
-    <a id="modal-whatsapp" href="#" target="_blank" rel="noopener">Contactar por WhatsApp</a>
+
+    <!-- Perfil generico (se usa mientras el local no tiene "perfil_url"
+         definido en shopsData, ej. mientras no se ha capturado su
+         plantilla de plan final) -->
+    <div id="modal-generic">
+      <div id="modal-foto"></div>
+      <div id="modal-badge"></div>
+      <div id="modal-numero"></div>
+      <h2 id="modal-title"></h2>
+      <div id="modal-extra"></div>
+      <div id="modal-chips"></div>
+      <p id="modal-desc"></p>
+      <a id="modal-whatsapp" href="#" target="_blank" rel="noopener">Contactar por WhatsApp</a>
+    </div>
+
+    <!-- Perfil real del plan (Normal/Plus/Premium): cuando el local ya
+         tiene "perfil_url" en shopsData, aqui se carga tal cual esa
+         pagina, sin tocar su HTML/CSS/JS original -->
+    <iframe id="modal-iframe" title="Perfil del local" loading="lazy"></iframe>
   </div>
 </div>
 
@@ -490,6 +538,23 @@
                              ej. "local-14". Ambos mostrarán el mismo perfil.
        whatsapp          -> número a 12-13 dígitos, sin espacios ni signos
        mensaje           -> mensaje precargado al abrir WhatsApp
+       perfil_url        -> (opcional) ruta/URL al archivo HTML del perfil
+                             ya armado a partir de la plantilla de su plan
+                             (PlanNormal-Original.html, PlanPlus-Original.html
+                             o PlanPremium-Original.html, cada uno editado con
+                             los datos reales de ese comerciante). En cuanto
+                             un local tenga este campo, al darle clic se abre
+                             ESA página completa dentro del recuadro, tal cual
+                             como está diseñada (mismas fotos que se adaptan
+                             solas a la cantidad subida, mismo ancho de cada
+                             plan, mismo carrusel/pestañas si el plan las
+                             trae), sin mezclarse con el CSS del mapa. Si un
+                             local no tiene "perfil_url" todavía, se sigue
+                             mostrando el perfil genérico de siempre. El ancho
+                             del recuadro se ajusta solo según "plan" (normal
+                             420px, plus 820px, premium 780px) y nunca pasa de
+                             95% del ancho de pantalla, así que también se ve
+                             bien en teléfono.
   ========================================================================= */
   const CATEGORIAS = ["Ropa", "Comida", "Electrónicos", "Juguetes", "Accesorios", "Calzado", "Reparaciones","Hogar","Cosméticos","Equipo Táctico","Ropa Deportiva","Otros"];
 
@@ -2452,7 +2517,15 @@
   const connectorLine = document.getElementById("connectorLine");
 
   const modalBackdrop = document.getElementById("modal-backdrop");
+  const modalEl = document.getElementById("modal");
   const modalClose = document.getElementById("modal-close");
+  const modalGeneric = document.getElementById("modal-generic");
+  const modalIframe = document.getElementById("modal-iframe");
+
+  // Ancho ideal del perfil segun el plan del local (coincide con el ancho
+  // real de cada plantilla: Plan Normal 400px, Plan Plus 800px, Plan
+  // Premium 750px). En pantallas chicas siempre se limita a 95vw.
+  const PLAN_PROFILE_WIDTH = { normal: 420, plus: 820, premium: 780 };
   const modalFoto = document.getElementById("modal-foto");
   const modalBadge = document.getElementById("modal-badge");
   const modalNumero = document.getElementById("modal-numero");
@@ -2577,6 +2650,24 @@
   function openModal(id) {
     const { shop } = resolveShop(id);
 
+    // Si el local ya tiene su pagina de perfil definitiva (plan Normal,
+    // Plus o Premium) capturada en "perfil_url", se muestra esa pagina
+    // completa dentro de un iframe, tal cual esta diseñada, ajustando
+    // solo el ancho del recuadro segun el plan. Si todavia no la tiene,
+    // se usa el perfil generico de siempre.
+    if (shop.perfil_url) {
+      const ancho = PLAN_PROFILE_WIDTH[shop.plan] || 500;
+      modalEl.style.setProperty("--modal-iframe-w", ancho + "px");
+      modalEl.classList.add("modal--iframe");
+      modalIframe.src = shop.perfil_url;
+
+      hideCallout();
+      modalBackdrop.classList.add("open");
+      document.body.classList.add("modal-open");
+      return;
+    }
+    modalEl.classList.remove("modal--iframe");
+
     modalBadge.className = "";
     if (shop.plan === "plus") {
       modalBadge.textContent = "Plus";
@@ -2629,6 +2720,10 @@
   function closeModal() {
     modalBackdrop.classList.remove("open");
     document.body.classList.remove("modal-open");
+    // se limpia el iframe al cerrar para liberar memoria y detener
+    // cualquier reproduccion (video, mapa, carrusel automatico, etc.)
+    modalIframe.src = "about:blank";
+    modalEl.classList.remove("modal--iframe");
   }
 
   modalClose.addEventListener("click", closeModal);
