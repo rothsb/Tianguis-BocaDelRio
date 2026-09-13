@@ -328,6 +328,24 @@
 </head>
 <body>
 
+<!-- =========================================================================
+     ÍNDICE DE ESTE ARCHIVO (búscalo con Ctrl+F si te pierdes)
+     -------------------------------------------------------------------------
+     [SECCIÓN A] MAPA — Las 129 cajitas invisibles (<rect>) con la posición
+                 de cada local sobre la imagen. Solo tiene coordenadas
+                 (x, y, ancho, alto). AQUÍ NO SE PONE nombre, categoría,
+                 plan, whatsapp, ni nada de contenido del negocio.
+
+     [SECCIÓN B] shopsData — AQUÍ SÍ va toda la información real de cada
+                 local: nombre, categoría, plan, whatsapp, perfil_url, etc.
+                 Es el único lugar que necesitas tocar seguido para capturar
+                 o actualizar un comerciante.
+
+     [SECCIÓN C] LÓGICA DEL MAPA — filtros, tarjetita al pasar el mouse
+                 (callout), modal/perfil completo, etc. Código de
+                 funcionamiento; normalmente no se toca.
+     ========================================================================= -->
+
 <header>
   <h1>Tianguis de boca del rio</h1>
   <p>toca o pasa el mouse sobre un local para ver su información.</p>
@@ -336,6 +354,10 @@
 <div class="filtros" id="filtros">
 </div>
 
+<!-- =========================================================================
+     [SECCIÓN A] MAPA — posición de los 129 locales (no tocar para cargar
+     info de negocio; eso va en shopsData, [SECCIÓN B], más abajo)
+     ========================================================================= -->
 <div class="map-wrap">
   <div class="map-frame" id="mapFrame">
     <img id="mapImage" src="TianguisDigital.png" alt="Mapa del Tianguis Digital" draggable="false">
@@ -473,6 +495,12 @@
   </div>
 </div>
 
+<!-- =========================================================================
+     [SECCIÓN C] LÓGICA DEL MAPA — la tarjetita al pasar el mouse (callout),
+     el modal/perfil completo, filtros, etc. Es "cómo funciona" el mapa;
+     normalmente no se toca. La información de cada local (Sección B) está
+     más abajo, dentro del <script>.
+     ========================================================================= -->
 <svg id="connectorSvg"><line id="connectorLine" x1="0" y1="0" x2="0" y2="0"></line></svg>
 
 <div id="callout">
@@ -517,8 +545,11 @@
   "use strict";
 
   /* =====================================================================
-     DATOS DE LOS LOCALES — reemplaza estos valores con la información real
-     de cada comerciante conforme la vayas capturando.
+     [SECCIÓN B] shopsData — INFORMACIÓN DE CADA LOCAL
+     Este es el único bloque que necesitas abrir seguido. Cada "local-N"
+     de aquí corresponde exactamente al <rect data-id="local-N"> de la
+     SECCIÓN A (arriba, en el mapa) — no necesitas tocar la Sección A
+     para cargar o actualizar el contenido de un negocio.
 
      Campos por local:
        numero, pasillo   -> ubicación (se llenan solos, no los toques)
@@ -2490,6 +2521,13 @@
                 "mensaje": "Hola, vi tu local (local-129) en Tianguis Digital y quiero más información."
         }
 };
+
+  /* =====================================================================
+     ---- fin de [SECCIÓN B] --------------------------------------------
+     De aquí en adelante ya es [SECCIÓN C]: código de funcionamiento del
+     mapa (filtros, callout, modal, WhatsApp, etc.). No hace falta tocarlo
+     para dar de alta o editar un local; eso se hace arriba, en shopsData.
+     ========================================================================= */
 
   const FALLBACK_SHOP = {
     numero: "?", pasillo: "?",
