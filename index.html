@@ -142,14 +142,16 @@
     z-index: 45;
   }
   #connectorSvg line {
-    stroke: var(--text);
-    stroke-width: 1.5;
+    /* la linea conectora se dejo de usar (ahora la tarjeta se posiciona
+       pegada al local sin trazo visible); se mantiene oculta siempre */
+    stroke: transparent;
+    stroke-width: 0;
     opacity: 0;
   }
   #callout {
     position: fixed;
     z-index: 46;
-    width: 240px;
+    width: 260px;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 16px;
@@ -158,18 +160,20 @@
     display: none;
   }
   #callout.visible { display: block; }
-  .callout-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .callout-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
   .callout-foto {
-    width: 46px; height: 46px;
+    width: 64px; height: 64px;
     border-radius: 50%;
     background: var(--coral) center/cover no-repeat;
     flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 700; color: #fff; font-size: 15px;
+    font-weight: 700; color: #fff; font-size: 20px;
+    border: 3px solid var(--bg-card);
+    box-shadow: 0 0 0 3px var(--border);
   }
   .callout-info { min-width: 0; }
   .callout-numero { font-size: 11px; color: var(--muted); font-weight: 700; }
-  .callout-nombre { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .callout-nombre { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .callout-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
   .chip {
     background: var(--bg-page);
@@ -2498,17 +2502,17 @@
     const anchorX = boxRect.left + boxRect.width / 2;
     const anchorY = boxRect.top;
 
-    const calloutW = callout.offsetWidth || 240;
+    const calloutW = callout.offsetWidth || 260;
     const calloutH = callout.offsetHeight || 140;
 
     let left = anchorX - calloutW / 2;
     left = Math.max(10, Math.min(left, window.innerWidth - calloutW - 10));
 
-    let top = anchorY - calloutH - 22;
+    let top = anchorY - calloutH - 12;
     let lineY2 = top + calloutH;
     if (top < 10) {
       // si no cabe arriba, se coloca abajo del local
-      top = boxRect.bottom + 22;
+      top = boxRect.bottom + 12;
       lineY2 = top;
     }
 
@@ -2519,7 +2523,8 @@
     connectorLine.setAttribute("y1", Math.round(anchorY));
     connectorLine.setAttribute("x2", Math.round(anchorX));
     connectorLine.setAttribute("y2", Math.round(lineY2));
-    connectorLine.style.opacity = "1";
+    // la linea conectora ya no se muestra (se quito el trazo hacia el local);
+    // la tarjeta ahora se posiciona pegada al local sin necesidad de guia visual
   }
 
   function showCallout(hitboxEl, id) {
@@ -2544,7 +2549,7 @@
 
     calloutNumero.textContent = "Local " + shop.numero + " · Pasillo " + shop.pasillo;
     calloutNombre.textContent = shop.nombre;
-    setFotoEl(calloutFoto, shop, 46);
+    setFotoEl(calloutFoto, shop, 64);
     calloutChips.innerHTML = "";
     (shop.categorias_clave || []).slice(0, 3).forEach(function (cat) {
       const span = document.createElement("span");
@@ -2562,7 +2567,6 @@
 
   function hideCallout() {
     callout.classList.remove("visible");
-    connectorLine.style.opacity = "0";
     document.querySelectorAll(".local-hitbox.is-open").forEach(function (el) {
       el.classList.remove("is-open");
     });
