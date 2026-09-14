@@ -1,1 +1,725 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Local - Plan Premium</title>
+    <style>
 
+        :root {
+            --premium-dark: #1a1a1a;
+            --premium-gold: #c5a059;
+            --premium-gold-light: #e8d5b5;
+            --bg-body: #f4f2f0;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #777777;
+            --border-color: #eaeaea;
+            --white: #ffffff;
+            --font-main: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            --font-serif: 'Georgia', serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-main);
+            color: var(--text-main);
+            background-color: var(--bg-body);
+            display: flex;
+            justify-content: center;
+            padding: 40px 10px;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        .profile-card {
+            width: 100%;
+            max-width: 750px;
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+            overflow: hidden;
+            border: 1px solid var(--premium-gold-light);
+        }
+
+        /* BANNER Y LOGO */
+        .banner {
+            position: relative;
+            height: 220px;
+            background-image: url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800');
+            background-size: cover;
+            background-position: center;
+        }
+        .banner::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6));
+        }
+
+        .logo-circle {
+            position: absolute; bottom: -55px; left: 50%; transform: translateX(-50%);
+            width: 110px; height: 110px; border-radius: 50%;
+            border: 4px solid var(--white); box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+            overflow: hidden; background: var(--white); z-index: 2;
+        }
+        .logo-circle img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ENCABEZADO */
+        .profile-header {
+            padding: 70px 30px 25px; text-align: center; border-bottom: 1px solid var(--border-color);
+        }
+        .category-tags { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; }
+        .category-tags span {
+            background-color: var(--premium-dark); color: var(--white);
+            font-size: 0.75rem; font-weight: 600; padding: 5px 14px;
+            border-radius: 12px; letter-spacing: 0.5px;
+        }
+        .profile-header h1 { font-size: 1.8rem; font-weight: 800; color: var(--premium-dark); margin-bottom: 8px; }
+        .profile-header p { font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; max-width: 500px; margin: 0 auto 15px; }
+        .schedule-badge {
+            display: inline-flex; align-items: center; gap: 6px; background-color: #faf9f7;
+            border: 1px solid var(--premium-gold-light); padding: 6px 16px; border-radius: 20px;
+            font-size: 0.85rem; font-weight: 600; color: var(--premium-dark);
+        }
+
+        /* BANNER DE PROMOCIÓN ADAPTADO AL ESTILO PREMIUM */
+        .promo-banner {
+            background-color: var(--white);
+            border: 1px dashed var(--premium-gold);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            color: var(--premium-dark);
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 auto 25px;
+            max-width: 85%;
+            box-shadow: 0 4px 15px rgba(197, 160, 89, 0.05);
+        }
+        .promo-banner strong { color: var(--premium-gold); }
+
+        /* PESTAÑAS PRINCIPALES */
+        .tabs-container {
+            display: flex; justify-content: center; background-color: #faf9f7; border-bottom: 1px solid var(--border-color);
+        }
+        .tab-btn {
+            background: none; border: none; padding: 16px 24px; font-size: 0.9rem;
+            font-weight: 700; color: var(--text-muted); cursor: pointer; position: relative; transition: color 0.3s;
+        }
+        .tab-btn:hover, .tab-btn.active { color: var(--premium-dark); }
+        .tab-btn.active::after {
+            content: ''; position: absolute; bottom: -1px; left: 0;
+            width: 100%; height: 3px; background-color: var(--premium-gold);
+        }
+        .tab-content { display: none; padding: 30px; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* PORTADA ROTATIVA (LOOKBOOK) CON BOTONES */
+        .cover-showcase {
+            background-color: #faf9f7; border-radius: 16px; padding: 24px; margin-bottom: 25px; border: 1px solid var(--premium-gold-light);
+        }
+        .cover-carousel-container { position: relative; width: 100%; height: 250px; border-radius: 12px; overflow: hidden; margin-bottom: 15px; }
+        .cover-slide { display: none; width: 100%; height: 100%; }
+        .cover-slide.active { display: block; }
+        .cover-slide img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .carousel-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.4); color: white; border: none;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            font-size: 0.9rem; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s; z-index: 10;
+        }
+        .carousel-btn:hover { background: rgba(0, 0, 0, 0.7); }
+        .carousel-btn.prev { left: 10px; }
+        .carousel-btn.next { right: 10px; }
+
+        .cover-text h2 { font-family: var(--font-serif); font-size: 1.8rem; color: var(--premium-dark); margin-bottom: 5px; }
+        .cover-text p { font-size: 0.9rem; color: var(--text-muted); }
+
+        /* SUB-PESTAÑAS (FILTROS) */
+        .filter-pills {
+            display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; scrollbar-width: none;
+        }
+        .filter-pills::-webkit-scrollbar { display: none; }
+        .pill {
+            background-color: #f0ede8; color: var(--text-muted); padding: 8px 16px;
+            border-radius: 20px; font-size: 0.8rem; font-weight: 700; white-space: nowrap;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .pill:hover, .pill.active { background-color: var(--premium-dark); color: var(--white); }
+
+        /* VISTAS DE CATÁLOGO */
+        .sub-tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .sub-tab-content.active { display: block; }
+
+        /* ESTILO 1: CUADRÍCULA (GRID) Y SLIDES DE PRODUCTOS */
+        .products-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+            gap: 15px; 
+        }
+        .product-card {
+            background: var(--white); border: 1px solid var(--border-color);
+            border-radius: 14px; padding: 12px; display: flex; flex-direction: column;
+        }
+        
+        .prod-slide { display: none; flex-direction: column; height: 100%; animation: fadeIn 0.3s ease; }
+        .prod-slide.active { display: flex; }
+        
+        .product-gallery-wrapper {
+            position: relative; margin-bottom: 10px; border-radius: 10px; overflow: hidden;
+        }
+        .slide-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; }
+        
+        /* BOTONES DE MINI-CARRUSEL (GALERÍA PRODUCTO) */
+        .gallery-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.4); color: white; border: none;
+            width: 24px; height: 24px; border-radius: 50%; cursor: pointer;
+            font-size: 0.7rem; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s; z-index: 5;
+        }
+        .gallery-btn:hover { background: rgba(0, 0, 0, 0.7); }
+        .gallery-btn.prev { left: 5px; }
+        .gallery-btn.next { right: 5px; }
+
+        .product-title { font-size: 0.9rem; font-weight: 600; color: var(--premium-dark); margin-bottom: 2px; }
+        .product-price { font-size: 1.1rem; font-weight: 800; color: var(--premium-gold); margin-bottom: 6px; }
+        
+        /* DETALLES DE PRODUCTO */
+        .product-details { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4; }
+        .product-details strong { color: var(--premium-dark); }
+        
+        .btn-ask {
+            margin-top: auto; background-color: var(--premium-dark); color: var(--white); text-align: center;
+            padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+        }
+        
+        /* ESTILO 2: FILAS (LISTA HORIZONTAL) */
+        .products-list { display: flex; flex-direction: column; gap: 15px; }
+        .product-row-container { display: block; }
+        .prod-slide.product-row {
+            display: none; background: var(--white); border: 1px solid var(--border-color);
+            border-radius: 14px; padding: 12px; gap: 15px; align-items: flex-start;
+            animation: fadeIn 0.3s ease;
+        }
+        .prod-slide.product-row.active { display: flex; }
+        
+        .product-row-container .product-gallery-wrapper {
+            width: 110px; height: 110px; flex-shrink: 0; margin-bottom: 0; border-radius: 8px;
+        }
+        .product-row-info { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; height: 100%; }
+        .prod-slide.product-row .product-details { margin-bottom: 8px; }
+        .prod-slide.product-row .btn-ask { align-self: flex-start; margin-top: auto; }
+
+        /* PESTAÑA 2: INFORMACIÓN Y CONTACTO */
+        .info-section { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        .info-section:last-child { border-bottom: none; }
+        .info-section h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; color: var(--premium-dark); }
+        .info-section p { font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; }
+
+        .social-links { display: flex; gap: 15px; margin-top: 15px; }
+        .social-links a {
+            width: 45px; height: 45px; border-radius: 50%; background-color: var(--white); border: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--premium-dark); font-weight: 700; transition: all 0.3s;
+        }
+        .social-links a:hover { background-color: var(--premium-gold); color: var(--white); border-color: var(--premium-gold); }
+        
+        .website-link { display: inline-flex; align-items: center; gap: 8px; color: var(--premium-dark); font-weight: 700; font-size: 0.9rem; border-bottom: 2px solid var(--premium-gold); padding-bottom: 2px; margin-top: 10px; }
+
+        .map-container { width: 100%; height: 250px; background-color: #eee; border-radius: 12px; margin-top: 15px; overflow: hidden; border: 1px solid var(--border-color); }
+        .map-container iframe { width: 100%; height: 100%; border: none; }
+
+        .btn-whatsapp-main { display: flex; align-items: center; justify-content: center; gap: 10px; background-color: #25D366; color: var(--white); padding: 16px; border-radius: 30px; font-weight: 800; font-size: 1.05rem; margin: 20px auto 0; max-width: 400px; box-shadow: 0 6px 15px rgba(37, 211, 102, 0.3); transition: transform 0.2s; }
+        .btn-whatsapp-main:hover { transform: scale(1.02); }
+        
+        .methods-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .method-badge { background-color: var(--white); border: 1px solid var(--premium-gold); color: var(--premium-dark); padding: 8px 14px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="profile-card">
+
+        <div class="banner">
+            <div class="logo-circle">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200" alt="Logo">
+            </div>
+        </div>
+
+        <header class="profile-header">
+            <div class="category-tags">
+                <span>ROPA</span> <span>CASUAL</span>
+            </div>
+            <h1>Boutique Estándar</h1>
+            <p>Espacio premium en el tianguis con atención preferencial, catálogo completo y la mejor calidad.</p>
+            <div class="schedule-badge">🕒 Sáb - Dom 09:00 - 18:00</div>
+        </header>
+   
+        <div class="promo-banner">
+            ✨ <span><strong>Promoción:</strong> 10% de descuento en tu primera compra</span>
+        </div>
+
+        <div class="tabs-container">
+            <button class="tab-btn active" onclick="openTab(event, 'catalogo')">Catálogo</button>
+            <button class="tab-btn" onclick="openTab(event, 'info')">Sobre el Local</button>
+        </div>
+
+        <!-- PESTAÑA 1: CATÁLOGO -->
+        <div id="catalogo" class="tab-content active">
+            
+            <section class="cover-showcase">
+                <div class="cover-carousel-container">
+                    <button class="carousel-btn prev" onclick="changeCoverSlide(-1)">❮</button>
+                    <button class="carousel-btn next" onclick="changeCoverSlide(1)">❯</button>
+                    
+                    <div class="cover-slide active"><img src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800"></div>
+                    <div class="cover-slide"><img src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800"></div>
+                    <div class="cover-slide"><img src="https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=800"></div>
+                </div>
+                <div class="cover-text">
+                    <h2>Refresh Your Everyday</h2>
+                    <p>Piezas pensadas para un estilo diario cómodo y sin esfuerzo.</p>
+                </div>
+            </section>
+
+            <!-- SUB-PESTAÑAS (FILTROS INTERACTIVOS) -->
+            <div class="filter-pills">
+                <div class="pill active" onclick="openFilter(event, 'filtro-todo')">Todo</div>
+                <div class="pill" onclick="openFilter(event, 'filtro-filas')">Nueva Colección (Filas)</div>
+                <div class="pill" onclick="openFilter(event, 'filtro-bolsos')">Bolsos</div>
+                <div class="pill" onclick="openFilter(event, 'filtro-calzado')">Calzado</div>
+            </div>
+
+            <!-- VISTA 1: TODO -->
+            <div id="filtro-todo" class="sub-tab-content active">
+                <div class="products-grid">
+                    
+                    <!-- PRODUCTO 1 -->
+                    <div class="product-card">
+                        <!-- Variante 1 -->
+                        <div class="prod-slide active">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1590689627947-66c3a165fc34?w=400" alt="Bolsa">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Bolsa Tote de Piel</div>
+                            <div class="product-price">$590 MXN</div>
+                            <div class="product-details">
+                                <strong>Material:</strong> 100% Piel sintética<br>
+                                <strong>Colores:</strong> Café, Negro
+                            </div>
+                            <a href="#" class="btn-ask">Comprar Tote</a>
+                        </div>
+                        <!-- Variante 2 -->
+                        <div class="prod-slide">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=400" alt="Bolsa negra">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Bolso Cruzado Negro</div>
+                            <div class="product-price">$450 MXN</div>
+                            <div class="product-details">
+                                <strong>Material:</strong> Cuero vegano<br>
+                                <strong>Estilo:</strong> Urbano casual
+                            </div>
+                            <a href="#" class="btn-ask">Comprar Bolso</a>
+                        </div>
+                    </div>
+                    
+                    <!-- PRODUCTO 2 -->
+                    <div class="product-card">
+                        <div class="prod-slide active">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1596755094514-f87e32f85e23?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Camisa Oversize</div>
+                            <div class="product-price">$390 MXN</div>
+                            <div class="product-details">
+                                <strong>Tallas:</strong> M, L, XL<br>
+                                <strong>Corte:</strong> Relajado y amplio
+                            </div>
+                            <a href="#" class="btn-ask">Comprar Camisa</a>
+                        </div>
+                        <div class="prod-slide">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1521369909029-2afed882ba54?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Playera Oversize Pastel</div>
+                            <div class="product-price">$280 MXN</div>
+                            <div class="product-details">
+                                <strong>Tallas:</strong> M, L, XL<br>
+                                <strong>Material:</strong> Algodón transpirable
+                            </div>
+                            <a href="#" class="btn-ask">Comprar Playera</a>
+                        </div>
+                    </div>
+                    
+                    <!-- PRODUCTO 3 -->
+                    <div class="product-card">
+                        <div class="prod-slide active">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Sneakers Clásicos</div>
+                            <div class="product-price">$890 MXN</div>
+                            <div class="product-details">
+                                <strong>Tallas (MX):</strong> 25 a 29<br>
+                                <strong>Stock:</strong> Últimos pares
+                            </div>
+                            <a href="#" class="btn-ask">Comprar Sneakers</a>
+                        </div>
+                        <div class="prod-slide">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Tenis Deportivos Verde</div>
+                            <div class="product-price">$950 MXN</div>
+                            <div class="product-details">
+                                <strong>Tallas (MX):</strong> 25 a 28<br>
+                                <strong>Suela:</strong> Antiderrapante
+                            </div>
+                            <a href="#" class="btn-ask">Comprar Tenis</a>
+                        </div>
+                    </div>
+                    
+                    <!-- PRODUCTO 4 -->
+                    <div class="product-card">
+                        <div class="prod-slide active">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1551163943-3f6a855d1153?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Set Exclusivo Seda</div>
+                            <div class="product-price">$420 MXN</div>
+                            <div class="product-details">
+                                <strong>Tallas:</strong> S, M, L<br>
+                                <strong>Material:</strong> Tela suave y fresca
+                            </div>
+                            <a href="#" class="btn-ask">Comprar Set</a>
+                        </div>
+                        <div class="prod-slide">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Tank Top de Gimnasio</div>
+                            <div class="product-price">$220 MXN</div>
+                            <div class="product-details">
+                                <strong>Ideal para:</strong> Rutinas de hipertrofia<br>
+                                <strong>Tela:</strong> Transpirable y elástica
+                            </div>
+                            <a href="#" class="btn-ask">Comprar Tank Top</a>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <!-- VISTA 2: NUEVA COLECCIÓN (FILAS) -->
+            <div id="filtro-filas" class="sub-tab-content">
+                <div class="products-list">
+                    
+                    <!-- FILA 1 -->
+                    <div class="product-row-container">
+                        <div class="prod-slide product-row active">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1596755094514-f87e32f85e23?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-row-info">
+                                <div class="product-title">Camisa Oversize Premium</div>
+                                <div class="product-price">$390 MXN</div>
+                                <div class="product-details">
+                                    <strong>Tallas:</strong> M, L, XL | <strong>Ajuste:</strong> Holgado
+                                </div>
+                                <a href="#" class="btn-ask">Lo quiero</a>
+                            </div>
+                        </div>
+                        <div class="prod-slide product-row">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-row-info">
+                                <div class="product-title">Playera Básica Algodón</div>
+                                <div class="product-price">$250 MXN</div>
+                                <div class="product-details">
+                                    <strong>Tallas:</strong> S, M, L | <strong>Corte:</strong> Regular
+                                </div>
+                                <a href="#" class="btn-ask">Lo quiero</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- FILA 2 -->
+                    <div class="product-row-container">
+                        <div class="prod-slide product-row active">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1551163943-3f6a855d1153?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-row-info">
+                                <div class="product-title">Top Seda + Falda Set</div>
+                                <div class="product-price">$650 MXN</div>
+                                <div class="product-details">
+                                    <strong>Tallas:</strong> Unitalla | <strong>Colores:</strong> Rosa, Beige
+                                </div>
+                                <a href="#" class="btn-ask">Lo quiero</a>
+                            </div>
+                        </div>
+                        <div class="prod-slide product-row">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-row-info">
+                                <div class="product-title">Pantalón Deportivo Ancho</div>
+                                <div class="product-price">$480 MXN</div>
+                                <div class="product-details">
+                                    <strong>Tallas:</strong> S, M, L | <strong>Estilo:</strong> Streetwear
+                                </div>
+                                <a href="#" class="btn-ask">Lo quiero</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- VISTA 3: BOLSOS -->
+            <div id="filtro-bolsos" class="sub-tab-content">
+                <div class="products-grid">
+                    
+                    <div class="product-card">
+                        <div class="prod-slide active">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1590689627947-66c3a165fc34?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Bolsa Tote Piel</div>
+                            <div class="product-price">$590 MXN</div>
+                            <div class="product-details"><strong>Medidas:</strong> 40x30 cm</div>
+                            <a href="#" class="btn-ask">Comprar</a>
+                        </div>
+                        <div class="prod-slide">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Bandolera Elegante</div>
+                            <div class="product-price">$450 MXN</div>
+                            <div class="product-details"><strong>Color:</strong> Negro Mate</div>
+                            <a href="#" class="btn-ask">Comprar</a>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="prod-slide active">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1600857062241-98e5dba7f214?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Mochila Urbana</div>
+                            <div class="product-price">$480 MXN</div>
+                            <div class="product-details"><strong>Material:</strong> Lona resistente</div>
+                            <a href="#" class="btn-ask">Comprar</a>
+                        </div>
+                        <div class="prod-slide">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Bolso de Mano</div>
+                            <div class="product-price">$320 MXN</div>
+                            <div class="product-details"><strong>Textura:</strong> Lisa con brillos</div>
+                            <a href="#" class="btn-ask">Comprar</a>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <!-- VISTA 4: CALZADO -->
+            <div id="filtro-calzado" class="sub-tab-content">
+                <div class="products-grid">
+                    
+                    <div class="product-card">
+                        <div class="prod-slide active">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Sneakers Casuales</div>
+                            <div class="product-price">$890 MXN</div>
+                            <div class="product-details"><strong>Tallas:</strong> 25 a 29</div>
+                            <a href="#" class="btn-ask">Comprar</a>
+                        </div>
+                        <div class="prod-slide">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Deportivos de Malla</div>
+                            <div class="product-price">$950 MXN</div>
+                            <div class="product-details"><strong>Suela:</strong> Gel absorbe impacto</div>
+                            <a href="#" class="btn-ask">Comprar</a>
+                        </div>
+                    </div>
+
+                    <div class="product-card">
+                        <div class="prod-slide active">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Botas Piel Sintética</div>
+                            <div class="product-price">$750 MXN</div>
+                            <div class="product-details"><strong>Colores:</strong> Miel, Negro</div>
+                            <a href="#" class="btn-ask">Comprar</a>
+                        </div>
+                        <div class="prod-slide">
+                            <div class="product-gallery-wrapper">
+                                <button class="gallery-btn prev" onclick="changeProductSlide(this, -1)">❮</button>
+                                <img class="slide-img" src="https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=400">
+                                <button class="gallery-btn next" onclick="changeProductSlide(this, 1)">❯</button>
+                            </div>
+                            <div class="product-title">Zapatos de Vestir</div>
+                            <div class="product-price">$820 MXN</div>
+                            <div class="product-details"><strong>Material:</strong> Charol</div>
+                            <a href="#" class="btn-ask">Comprar</a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- PESTAÑA 2: INFORMACIÓN -->
+        <div id="info" class="tab-content">
+            <div class="info-section">
+                <h3>Sobre nosotros</h3>
+                <p>Somos un local con 5 años de experiencia garantizando la mejor calidad del tianguis en ropa y accesorios. Visítanos para conocer nuestras exclusivas colecciones.</p>
+                <a href="https://www.tupagina.com" target="_blank" class="website-link">Visita nuestra tienda oficial ↗</a>
+            </div>
+
+              <div class="info-section">
+                <h3>Métodos de Pago Aceptados</h3>
+                <div class="methods-container">
+                    <div class="method-badge">💳 Acepta Todas las Tarjetas</div>
+                    <div class="method-badge">💵 Efectivo</div>
+                    <div class="method-badge">🏦 Transferencia SPEI</div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Nuestras Redes</h3>
+                <div class="social-links">
+                    <a href="#" title="Facebook">f</a>
+                    <a href="#" title="Instagram">ig</a>
+                    <a href="#" title="TikTok">tk</a>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>Ubicación en el Tianguis</h3>
+                <p>📍 Pasillo Principal, Local 1 (Frente a la entrada principal)</p>
+                <div class="map-container">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.6611311025515!2d-99.16869368509335!3d19.42702448688758!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x85d1ff35f5bd1563%3A0x6c366f0e2de02ff7!2sEl%20%C3%81ngel%20de%20la%20Independencia!5e0!3m2!1ses-419!2smx!4v1677263591461!5m2!1ses-419!2smx" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+
+            <a href="#" class="btn-whatsapp-main">
+                💬 Enviar mensaje por WhatsApp
+            </a>
+        </div>
+
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            let tabcontent = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabcontent.length; i++) { tabcontent[i].classList.remove("active"); }
+            let tablinks = document.getElementsByClassName("tab-btn");
+            for (let i = 0; i < tablinks.length; i++) { tablinks[i].classList.remove("active"); }
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        function openFilter(evt, filterName) {
+            let subTabContent = document.getElementsByClassName("sub-tab-content");
+            for (let i = 0; i < subTabContent.length; i++) { subTabContent[i].classList.remove("active"); }
+            let pills = document.getElementsByClassName("pill");
+            for (let i = 0; i < pills.length; i++) { pills[i].classList.remove("active"); }
+            document.getElementById(filterName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        let coverSlideIndex = 0;
+        const coverSlides = document.querySelectorAll('.cover-slide');
+        let coverSlideTimer;
+
+        function showCoverSlide(index) {
+            coverSlides.forEach(slide => slide.classList.remove('active'));
+            coverSlideIndex = (index + coverSlides.length) % coverSlides.length;
+            coverSlides[coverSlideIndex].classList.add('active');
+        }
+
+        function changeCoverSlide(direction) {
+            showCoverSlide(coverSlideIndex + direction);
+            resetCoverTimer();
+        }
+
+        function resetCoverTimer() {
+            clearInterval(coverSlideTimer);
+            if(coverSlides.length > 0) {
+                coverSlideTimer = setInterval(() => changeCoverSlide(1), 3500);
+            }
+        }
+        resetCoverTimer();
+
+        // Nueva función adaptada para cambiar toda la información de la tarjeta
+        function changeProductSlide(btn, direction) {
+            const container = btn.closest('.product-card, .product-row-container');
+            const slides = container.querySelectorAll('.prod-slide');
+            let currentIndex = Array.from(slides).findIndex(slide => slide.classList.contains('active'));
+            
+            slides[currentIndex].classList.remove('active');
+            
+            let nextIndex = (currentIndex + direction + slides.length) % slides.length;
+            slides[nextIndex].classList.add('active');
+        }
+    </script>
+
+</body>
+</html>
