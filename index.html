@@ -2633,11 +2633,13 @@
         startPanY: mapPanY
       };
     } else if (e.touches.length === 1 && mapScale > 1) {
-      // un dedo, pero ya esta acercado: se usa para desplazarse dentro
-      // del mapa sin mover el resto de la pagina
-      e.preventDefault();
+      // un dedo con el mapa ya acercado: todavia no sabemos si el usuario
+      // va a arrastrar el mapa o solo esta tocando un local, asi que NO se
+      // bloquea el toque aqui (para no impedir que abra el perfil del
+      // local). Si luego se detecta arrastre real, recien ahi se activa
+      // el desplazamiento (ver touchmove).
       mapTouch = {
-        mode: "pan",
+        mode: "maybe-pan",
         startX: e.touches[0].clientX,
         startY: e.touches[0].clientY,
         startPanX: mapPanX,
@@ -2660,10 +2662,19 @@
       mapPanY = mapTouch.startPanY;
       clampMapPan();
       applyMapTransform();
-    } else if (mapTouch.mode === "pan" && e.touches.length === 1) {
+    } else if ((mapTouch.mode === "pan" || mapTouch.mode === "maybe-pan") && e.touches.length === 1) {
+      const dx = e.touches[0].clientX - mapTouch.startX;
+      const dy = e.touches[0].clientY - mapTouch.startY;
+      if (mapTouch.mode === "maybe-pan") {
+        // mientras el dedo no se mueva lo suficiente, se considera un
+        // simple toque (no arrastre) y se deja pasar sin bloquear nada,
+        // para que el clic sobre el local se dispare con normalidad
+        if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+        mapTouch.mode = "pan";
+      }
       e.preventDefault();
-      mapPanX = mapTouch.startPanX + (e.touches[0].clientX - mapTouch.startX);
-      mapPanY = mapTouch.startPanY + (e.touches[0].clientY - mapTouch.startY);
+      mapPanX = mapTouch.startPanX + dx;
+      mapPanY = mapTouch.startPanY + dy;
       clampMapPan();
       applyMapTransform();
     }
