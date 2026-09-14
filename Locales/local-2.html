@@ -1,1 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarjeta Plan Plus - Tianguis</title>
+    <style>
+        :root {
+            --bg-body: #f4f2f0;
+            --card-bg: #ffffff;
+            --primary-dark: #1f1f1f;
+            --accent-soft: #f3e8e2;
+            --accent-nude: #e8d5c8;
+            --badge-bg: #ece6e2;
+            --text-muted: #666666;
+            --font-main: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--primary-dark);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .card-container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #eae5e1;
+        }
+
+        .header-cover {
+            height: 140px;
+            background: linear-gradient(135deg, #d8c2b5 0%, #bca596 100%);
+            position: relative;
+        }
+
+        .avatar-wrapper {
+            position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%);
+            width: 90px; height: 90px; border-radius: 50%;
+            background-color: #ffffff; border: 4px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08); overflow: hidden;
+        }
+        .avatar-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+
+        .profile-body { padding: 60px 40px 30px; text-align: center; }
+
+        .tags-group { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; }
+        .tag-badge {
+            background-color: var(--badge-bg); color: var(--primary-dark);
+            padding: 4px 12px; border-radius: 12px; font-size: 0.72rem;
+            font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+        }
+        .store-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; }
+        .store-desc {
+            font-size: 0.95rem; color: var(--text-muted); line-height: 1.5;
+            margin-bottom: 16px; max-width: 600px; margin-left: auto; margin-right: auto;
+        }
+        .schedule-badge {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            background-color: #faf7f5; border: 1px solid #ebdcd3; padding: 7px 16px;
+            border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+            color: var(--primary-dark); margin-bottom: 25px;
+        }
+
+        .static-cover-container {
+            width: 100%; height: 250px; border-radius: 16px; overflow: hidden;
+            margin-bottom: 25px; background-color: #eee;
+        }
+        .static-cover-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        .promo-banner {
+            background-color: var(--accent-soft); border: 1px dashed var(--accent-nude);
+            border-radius: 12px; padding: 12px 16px; font-size: 0.9rem;
+            font-weight: 600; display: flex; align-items: center; justify-content: center;
+            gap: 8px; margin-bottom: 30px;
+        }
+
+        .section-label {
+            font-size: 1.1rem; font-weight: 800; text-align: left;
+            margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--primary-dark); padding-top: 10px;
+        }
+        .products-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px; margin-bottom: 30px;
+        }
+        .product-item {
+            background-color: #ffffff; border: 1px solid #f0eae6;
+            border-radius: 16px; padding: 14px; text-align: left;
+            display: flex; flex-direction: column; box-shadow: none;
+        }
+
+        .product-gallery {
+            display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+            aspect-ratio: 1 / 1; border-radius: 10px; margin-bottom: 8px;
+            scrollbar-width: none; background: #f7f3f0;
+        }
+        .product-gallery::-webkit-scrollbar { display: none; }
+        .product-gallery img { flex: 0 0 100%; height: 100%; object-fit: cover; scroll-snap-align: start; }
+        .swipe-hint {
+            font-size: 0.65rem; color: var(--text-muted); text-align: center;
+            margin-bottom: 8px; font-weight: 600; letter-spacing: 1px;
+        }
+
+        .product-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; color: var(--primary-dark); }
+        .product-price { font-size: 1.05rem; font-weight: 800; margin-bottom: 12px; color: var(--primary-dark); }
+        .btn-prod-wa {
+            margin-top: auto; background-color: var(--accent-soft);
+            color: var(--primary-dark); text-decoration: none; text-align: center;
+            padding: 10px; border-radius: 8px; font-size: 0.85rem;
+            font-weight: 700; transition: opacity 0.2s;
+        }
+        .btn-prod-wa:hover { opacity: 0.85; }
+
+        .btn-whatsapp-main {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background-color: var(--primary-dark); color: #ffffff; text-decoration: none;
+            padding: 14px; border-radius: 30px; font-weight: 700; font-size: 0.95rem;
+            margin-bottom: 16px; max-width: 300px; margin-left: auto; margin-right: auto;
+        }
+        .social-links { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; }
+        .social-btn {
+            background-color: #f3f0ed; color: var(--primary-dark); text-decoration: none;
+            padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+        }
+
+        .location-box-bottom {
+            background-color: #faf7f5; border-radius: 16px; padding: 16px;
+            border: 1px solid #f0eae6; text-align: center;
+        }
+        .location-info {
+            font-size: 0.9rem; font-weight: 600; margin-bottom: 12px;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            color: var(--primary-dark);
+        }
+        .btn-maps {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            background-color: #ffffff; border: 1px solid #e0d8d2; color: var(--primary-dark);
+            text-decoration: none; padding: 12px 20px; border-radius: 12px;
+            font-weight: 600; font-size: 0.85rem; transition: background 0.2s;
+        }
+        .btn-maps:hover { background-color: var(--accent-soft); }
+
+        /* MÉTODOS DE PAGO HASTA EL FONDO */
+        .methods-container {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; 
+            margin-top: 25px; padding-top: 20px; border-top: 1px solid #eae5e1;
+        }
+        .method-badge {
+            background-color: #f7f5f3; border: 1px solid #eeebe8; color: var(--text-muted);
+            padding: 6px 12px; border-radius: 12px; font-size: 0.75rem;
+            font-weight: 600; display: flex; align-items: center; gap: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card-container">
+        <div class="header-cover">
+            <div class="avatar-wrapper">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200" alt="Avatar Tienda">
+            </div>
+        </div>
+
+        <div class="profile-body">
+            <div class="tags-group">
+                <span class="tag-badge">ROPA</span>
+                <span class="tag-badge">CASUAL</span>
+                <span class="tag-badge">PLUS</span>
+            </div>
+
+            <h1 class="store-title">Tienda de Ropa Estándar Plus</h1>
+            <p class="store-desc">Tu espacio mejorado en el tianguis. Mayor visibilidad, más productos y un diseño pensado para atraer más clientes.</p>
+
+            <div class="schedule-badge">
+                🕒 Horario: Sáb - Dom 10:00 - 17:00
+            </div>
+
+
+            <div class="static-cover-container">
+                <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800" alt="Foto del local">
+            </div>
+
+           
+
+            <!-- PRIMERA CATEGORÍA -->
+            <div class="section-label">NUESTRO CATÁLOGO</div>
+            <div class="products-grid">
+                <div class="product-item">
+                    <div class="product-gallery">
+                        <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300" alt="Blusa Primavera">
+                        <img src="https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=300" alt="Detalle">
+                    </div>
+                    <div class="swipe-hint">← Desliza →</div>
+                    <div class="product-title">Blusa Primavera</div>
+                    <div class="product-price">$180 MXN</div>
+                    <a href="#" class="btn-prod-wa">Preguntar</a>
+                </div>
+
+                <div class="product-item">
+                    <div class="product-gallery">
+                        <img src="https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=300" alt="Playera Oversize">
+                    </div>
+                    <div class="product-title">Playera Oversize</div>
+                    <div class="product-price">$220 MXN</div>
+                    <a href="#" class="btn-prod-wa">Preguntar</a>
+                </div>
+
+                <div class="product-item">
+                    <div class="product-gallery">
+                        <img src="https://images.unsplash.com/photo-1551163943-3f6a855d1153?w=300" alt="Top Satinado">
+                        <img src="https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=300" alt="Detalle">
+                    </div>
+                    <div class="swipe-hint">← Desliza →</div>
+                    <div class="product-title">Top Satinado</div>
+                    <div class="product-price">$160 MXN</div>
+                    <a href="#" class="btn-prod-wa">Preguntar</a>
+                </div>
+            </div>
+
+            <!-- SEGUNDA CATEGORÍA -->
+            <div class="section-label">ACCESORIOS</div>
+            <div class="products-grid">
+                <div class="product-item">
+                    <div class="product-gallery">
+                        <img src="https://images.unsplash.com/photo-1590689627947-66c3a165fc34?w=300" alt="Bolsa">
+                    </div>
+                    <div class="product-title">Bolsa Tote Piel</div>
+                    <div class="product-price">$590 MXN</div>
+                    <a href="#" class="btn-prod-wa">Preguntar</a>
+                </div>
+
+                <div class="product-item">
+                    <div class="product-gallery">
+                        <img src="https://images.unsplash.com/photo-1521369909029-2afed882ba54?w=300" alt="Gorra">
+                    </div>
+                    <div class="product-title">Gorra Urbana</div>
+                    <div class="product-price">$120 MXN</div>
+                    <a href="#" class="btn-prod-wa">Preguntar</a>
+                </div>
+
+                <div class="product-item">
+                    <div class="product-gallery">
+                        <img src="https://images.unsplash.com/photo-1611078712128-09559c99c565?w=300" alt="Lentes">
+                    </div>
+                    <div class="product-title">Lentes Oscuros</div>
+                    <div class="product-price">$90 MXN</div>
+                    <a href="#" class="btn-prod-wa">Preguntar</a>
+                </div>
+            </div>
+
+            <!-- CONTACTO Y UBICACIÓN -->
+            <a href="#" class="btn-whatsapp-main">
+                💬 Contactar por WhatsApp
+            </a>
+
+            <div class="social-links">
+                <a href="#" class="social-btn">📷 Instagram</a>
+                <a href="#" class="social-btn">📘 Facebook</a>
+            </div>
+
+            <div class="location-box-bottom">
+                <div class="location-info">
+                    📍 <span>Pasillo 4, Puesto 18</span>
+                </div>
+                <a href="https://maps.google.com" target="_blank" class="btn-maps">
+                    🗺️ Ver cómo llegar en Google Maps
+                </a>
+            </div>
+
+            <!-- MÉTODOS DE PAGO HASTA EL FINAL -->
+            <div class="methods-container">
+                <div class="method-badge">💳 Acepta Tarjeta</div>
+                <div class="method-badge">💵 Efectivo</div>
+                <div class="method-badge">🏦 Transferencia</div>
+                <div class="method-badge">📦 Entrega en local</div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
