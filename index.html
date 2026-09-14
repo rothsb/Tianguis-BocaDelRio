@@ -90,6 +90,18 @@
     overflow: hidden;
     background: #fff;
     box-shadow: var(--shadow);
+    /* deja que la pagina se siga desplazando verticalmente con un dedo,
+       pero le quita al navegador el pellizco/doble-toque nativo dentro del
+       recuadro, para que ese gesto lo controle nuestro propio JS (ver
+       [SECCIÓN C]) y solo mueva lo de adentro del mapa, no la pagina */
+    touch-action: pan-y;
+  }
+  /* Todo lo que va DENTRO del recuadro (imagen + overlays de los locales).
+     El pellizco para acercar/alejar y arrastrar solo transforma este div;
+     el header, los filtros y el resto de la pagina nunca se mueven. */
+  .map-inner {
+    transform-origin: center center;
+    will-change: transform;
   }
   .map-frame img {
     display: block;
@@ -104,6 +116,25 @@
     width: 100%;
     height: 100%;
   }
+  /* Botoncito para restablecer el acercamiento del mapa (solo aparece
+     cuando el usuario ya hizo zoom hacia adentro) */
+  .map-zoom-reset {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 5;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 7px 12px;
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    display: none;
+  }
+  .map-zoom-reset.visible { display: block; }
 
   .local-hitbox {
     fill: #ffffff;
@@ -360,6 +391,8 @@
      ========================================================================= -->
 <div class="map-wrap">
   <div class="map-frame" id="mapFrame">
+    <button type="button" class="map-zoom-reset" id="mapZoomReset">✕ Restablecer zoom</button>
+    <div class="map-inner" id="mapInner">
     <img id="mapImage" src="TianguisDigital.png" alt="Mapa del Tianguis Digital" draggable="false">
     <svg viewBox="0 0 2160 2160" preserveAspectRatio="xMidYMid meet" id="overlaySvg">
             <rect class="local-hitbox" data-id="local-1" x="24" y="146" width="201" height="105" rx="14" tabindex="0" role="button" aria-label="Local 1, pasillo 1"></rect>
@@ -492,6 +525,7 @@
             <rect class="local-hitbox" data-id="local-128" x="1436" y="1787" width="79" height="144" rx="14" tabindex="0" role="button" aria-label="Local 128, pasillo 5"></rect>
             <rect class="local-hitbox" data-id="local-129" x="1422" y="1930" width="75" height="156" rx="14" tabindex="0" role="button" aria-label="Local 129, pasillo 5"></rect>
     </svg>
+    </div>
   </div>
 </div>
 
@@ -2545,6 +2579,109 @@
   const svg = document.getElementById("overlaySvg");
   const mapFrame = document.getElementById("mapFrame");
   const mapImage = document.getElementById("mapImage");
+
+  // ---------------------------------------------------------------------
+  // Zoom con pellizco (pinch) DENTRO del recuadro del mapa.
+  // Solo se mueve/acerca "mapInner" (la imagen + los locales); el resto
+  // de la pagina (header, filtros de categoria, etc.) se queda fijo y
+  // siempre visible, aunque el usuario este acercado al máximo.
+  // ---------------------------------------------------------------------
+  const mapInner = document.getElementById("mapInner");
+  const mapZoomReset = document.getElementById("mapZoomReset");
+  const MAP_MIN_SCALE = 1;
+  const MAP_MAX_SCALE = 4;
+
+  let mapScale = 1;
+  let mapPanX = 0;
+  let mapPanY = 0;
+  let mapTouch = null; // guarda el gesto de pellizco o arrastre en curso
+
+  function applyMapTransform() {
+    mapInner.style.transform =
+      "translate(" + mapPanX + "px," + mapPanY + "px) scale(" + mapScale + ")";
+    mapZoomReset.classList.toggle("visible", mapScale > 1.02);
+  }
+
+  function clampMapPan() {
+    const frameRect = mapFrame.getBoundingClientRect();
+    const maxX = (frameRect.width * (mapScale - 1)) / 2;
+    const maxY = (frameRect.height * (mapScale - 1)) / 2;
+    mapPanX = Math.max(-maxX, Math.min(maxX, mapPanX));
+    mapPanY = Math.max(-maxY, Math.min(maxY, mapPanY));
+  }
+
+  function resetMapZoom() {
+    mapScale = 1;
+    mapPanX = 0;
+    mapPanY = 0;
+    applyMapTransform();
+  }
+
+  function touchDist(a, b) {
+    return Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+  }
+
+  mapFrame.addEventListener("touchstart", function (e) {
+    if (e.touches.length === 2) {
+      // pellizco con dos dedos: siempre lo controlamos nosotros
+      e.preventDefault();
+      mapTouch = {
+        mode: "pinch",
+        startDist: touchDist(e.touches[0], e.touches[1]) || 1,
+        startScale: mapScale,
+        startPanX: mapPanX,
+        startPanY: mapPanY
+      };
+    } else if (e.touches.length === 1 && mapScale > 1) {
+      // un dedo, pero ya esta acercado: se usa para desplazarse dentro
+      // del mapa sin mover el resto de la pagina
+      e.preventDefault();
+      mapTouch = {
+        mode: "pan",
+        startX: e.touches[0].clientX,
+        startY: e.touches[0].clientY,
+        startPanX: mapPanX,
+        startPanY: mapPanY
+      };
+    } else {
+      // tamaño normal y un solo dedo: se deja pasar tal cual, para que
+      // sigan funcionando los toques sobre los locales y el scroll normal
+      mapTouch = null;
+    }
+  }, { passive: false });
+
+  mapFrame.addEventListener("touchmove", function (e) {
+    if (!mapTouch) return;
+    if (mapTouch.mode === "pinch" && e.touches.length === 2) {
+      e.preventDefault();
+      const factor = touchDist(e.touches[0], e.touches[1]) / mapTouch.startDist;
+      mapScale = Math.max(MAP_MIN_SCALE, Math.min(MAP_MAX_SCALE, mapTouch.startScale * factor));
+      mapPanX = mapTouch.startPanX;
+      mapPanY = mapTouch.startPanY;
+      clampMapPan();
+      applyMapTransform();
+    } else if (mapTouch.mode === "pan" && e.touches.length === 1) {
+      e.preventDefault();
+      mapPanX = mapTouch.startPanX + (e.touches[0].clientX - mapTouch.startX);
+      mapPanY = mapTouch.startPanY + (e.touches[0].clientY - mapTouch.startY);
+      clampMapPan();
+      applyMapTransform();
+    }
+  }, { passive: false });
+
+  function endMapTouch() {
+    if (mapTouch && mapScale <= 1.02) resetMapZoom();
+    mapTouch = null;
+  }
+  mapFrame.addEventListener("touchend", endMapTouch);
+  mapFrame.addEventListener("touchcancel", endMapTouch);
+
+  mapZoomReset.addEventListener("click", resetMapZoom);
+
+  window.addEventListener("resize", function () {
+    clampMapPan();
+    applyMapTransform();
+  });
 
   const callout = document.getElementById("callout");
   const calloutFoto = document.getElementById("callout-foto");
