@@ -27,6 +27,8 @@
             padding: 40px 20px;
         }
 
+        img { max-width: 100%; height: auto; }
+
         .card-container {
             background-color: var(--card-bg);
             width: 100%;
@@ -53,7 +55,7 @@
 
         .profile-body { padding: 60px 40px 30px; text-align: center; }
 
-        .tags-group { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; }
+        .tags-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 12px; }
         .tag-badge {
             background-color: var(--badge-bg); color: var(--primary-dark);
             padding: 4px 12px; border-radius: 12px; font-size: 0.72rem;
@@ -127,7 +129,7 @@
             padding: 14px; border-radius: 30px; font-weight: 700; font-size: 0.95rem;
             margin-bottom: 16px; max-width: 300px; margin-left: auto; margin-right: auto;
         }
-        .social-links { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; }
+        .social-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-bottom: 30px; }
         .social-btn {
             background-color: #f3f0ed; color: var(--primary-dark); text-decoration: none;
             padding: 8px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
@@ -159,6 +161,51 @@
             background-color: #f7f5f3; border: 1px solid #eeebe8; color: var(--text-muted);
             padding: 6px 12px; border-radius: 12px; font-size: 0.75rem;
             font-weight: 600; display: flex; align-items: center; gap: 6px;
+        }
+
+        /* ============================================================
+           RESPONSIVO - TABLET Y MÓVIL GRANDE (≤600px)
+           ============================================================ */
+        @media (max-width: 600px) {
+            body { padding: 20px 12px; }
+
+            .card-container { width: 100%; max-width: 100%; border-radius: 18px; }
+
+            .profile-body { padding: 60px 20px 24px; }
+
+            .store-title { font-size: 1.3rem; }
+            .store-desc { font-size: 0.9rem; }
+
+            .static-cover-container { height: 190px; margin-bottom: 20px; }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 12px;
+                margin-bottom: 24px;
+            }
+
+            .product-item { padding: 12px; }
+
+            .btn-whatsapp-main { width: 100%; max-width: 100%; padding: 14px 10px; }
+
+            .location-box-bottom { padding: 14px; }
+
+            .methods-container { gap: 8px; }
+        }
+
+        /* ============================================================
+           RESPONSIVO - MÓVIL PEQUEÑO (≤380px)
+           ============================================================ */
+        @media (max-width: 380px) {
+            .profile-body { padding: 55px 14px 20px; }
+
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .tags-group .tag-badge,
+            .method-badge { font-size: 0.68rem; padding: 4px 9px; }
         }
     </style>
 </head>
