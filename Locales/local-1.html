@@ -157,12 +157,23 @@
       box-shadow: 0 8px 30px rgba(0,0,0,0.4);
     }
 
+    /* Botón de cierre reubicado abajo al centro para no empalmarse
+       con la "X" del contenedor principal del perfil (esquina sup. derecha) */
     .lightbox-close {
       position: absolute;
-      top: 20px;
-      right: 25px;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.4);
       color: #fff;
-      font-size: 2rem;
+      font-size: 1.7rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
       line-height: 1;
     }
@@ -209,9 +220,7 @@
     const productPhotos = [
       "https://res.cloudinary.com/demo/image/upload/sample.jpg",
       "https://res.cloudinary.com/demo/image/upload/c_fill,w_200,h_150/ar_4:3/lady.jpg",
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&q=80",
-      "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=600&q=80",
-      "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+      "https://res.cloudinary.com/demo/image/upload/c_fill,w_200,h_150/ar_4:3/docs/model.jpg"
       // agrega hasta 2 fotos más aquí (máximo 5 en total)
     ];
 
@@ -250,7 +259,10 @@
       const img = document.createElement('img');
       img.src = url;
       img.alt = 'Foto del local';
-      img.addEventListener('click', () => openLightbox(url));
+      img.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openLightbox(url);
+      });
 
       thumb.appendChild(img);
       grid.appendChild(thumb);
@@ -269,8 +281,12 @@
       lightbox.classList.remove('active');
     }
 
-    document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+    document.getElementById('lightboxClose').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeLightbox();
+    });
     lightbox.addEventListener('click', (e) => {
+      e.stopPropagation();
       if (e.target === lightbox) closeLightbox();
     });
   </script>
