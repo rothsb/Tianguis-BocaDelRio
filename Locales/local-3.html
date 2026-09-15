@@ -32,6 +32,7 @@
         }
 
         a { text-decoration: none; color: inherit; }
+        img { max-width: 100%; height: auto; }
 
         .profile-card {
             width: 100%;
@@ -68,7 +69,7 @@
         .profile-header {
             padding: 70px 30px 25px; text-align: center; border-bottom: 1px solid var(--border-color);
         }
-        .category-tags { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; }
+        .category-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 12px; }
         .category-tags span {
             background-color: var(--premium-dark); color: var(--white);
             font-size: 0.75rem; font-weight: 600; padding: 5px 14px;
@@ -103,7 +104,7 @@
 
         /* PESTAÑAS PRINCIPALES */
         .tabs-container {
-            display: flex; justify-content: center; background-color: #faf9f7; border-bottom: 1px solid var(--border-color);
+            display: flex; flex-wrap: wrap; justify-content: center; background-color: #faf9f7; border-bottom: 1px solid var(--border-color);
         }
         .tab-btn {
             background: none; border: none; padding: 16px 24px; font-size: 0.9rem;
@@ -240,6 +241,70 @@
         
         .methods-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
         .method-badge { background-color: var(--white); border: 1px solid var(--premium-gold); color: var(--premium-dark); padding: 8px 14px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+
+        /* ============================================================
+           RESPONSIVO - TABLET Y MÓVIL GRANDE (≤600px)
+           ============================================================ */
+        @media (max-width: 600px) {
+            body { padding: 20px 10px; }
+
+            .profile-card { width: 100%; max-width: 100%; border-radius: 16px; }
+
+            .banner { height: 170px; }
+            .logo-circle { width: 90px; height: 90px; bottom: -45px; }
+
+            .profile-header { padding: 55px 18px 20px; }
+            .profile-header h1 { font-size: 1.4rem; }
+            .profile-header p { font-size: 0.85rem; }
+
+            .promo-banner { max-width: 100%; font-size: 0.85rem; padding: 10px 12px; }
+
+            .tab-btn { padding: 14px 16px; font-size: 0.82rem; }
+
+            .tab-content { padding: 18px; }
+
+            .cover-showcase { padding: 16px; }
+            .cover-carousel-container { height: 180px; }
+            .cover-text h2 { font-size: 1.4rem; }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+                gap: 12px;
+            }
+
+            /* Las tarjetas "en fila" (Nueva Colección) se apilan en vertical
+               para que la foto no comprima el texto y el botón de compra */
+            .prod-slide.product-row.active { flex-direction: column; }
+            .product-row-container .product-gallery-wrapper {
+                width: 100%; height: auto; aspect-ratio: 1/1;
+            }
+            .product-row-info { width: 100%; }
+            .prod-slide.product-row .btn-ask { align-self: stretch; text-align: center; }
+
+            .map-container { height: 190px; }
+
+            .btn-whatsapp-main { width: 100%; max-width: 100%; padding: 14px 10px; font-size: 0.95rem; }
+
+            .social-links a { width: 40px; height: 40px; font-size: 1rem; }
+        }
+
+        /* ============================================================
+           RESPONSIVO - MÓVIL PEQUEÑO (≤380px)
+           ============================================================ */
+        @media (max-width: 380px) {
+            .profile-header { padding: 50px 14px 18px; }
+            .profile-header h1 { font-size: 1.25rem; }
+
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .category-tags span,
+            .method-badge { font-size: 0.68rem; padding: 4px 10px; }
+
+            .filter-pills .pill { font-size: 0.75rem; padding: 7px 12px; }
+        }
 
     </style>
 </head>
