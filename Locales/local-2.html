@@ -207,6 +207,37 @@
             .tags-group .tag-badge,
             .method-badge { font-size: 0.68rem; padding: 4px 9px; }
         }
+
+        /* Encabezado sutil sobre métodos de pago y entrega */
+        .methods-label {
+            font-size: 0.72rem; font-weight: 700; letter-spacing: 0.6px;
+            text-transform: uppercase; color: var(--text-muted);
+            text-align: center; margin-bottom: 10px;
+        }
+
+        /* ============================================================
+           LIGHTBOX (ver foto en pantalla completa)
+           ============================================================ */
+        .product-gallery img { cursor: zoom-in; }
+        .lightbox-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 9999; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box;
+        }
+        .lightbox-overlay.active { display: flex; }
+        .lightbox-overlay img {
+            max-width: 100%; max-height: 80vh; border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+        /* Botón de cierre abajo al centro: lejos de la "X" del contenedor
+           principal del perfil para que no se empalmen */
+        .lightbox-close {
+            position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+            width: 46px; height: 46px; border-radius: 50%;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4);
+            color: #fff; font-size: 1.7rem; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; line-height: 1;
+        }
     </style>
 </head>
 <body>
@@ -325,6 +356,7 @@
             </div>
 
             <!-- MÉTODOS DE PAGO HASTA EL FINAL -->
+            <div class="methods-label">Métodos de pago y entrega</div>
             <div class="methods-container">
                 <div class="method-badge">💳 Acepta Tarjeta</div>
                 <div class="method-badge">💵 Efectivo</div>
@@ -334,5 +366,43 @@
 
         </div>
     </div>
+
+    <!-- Lightbox: ver foto completa en pantalla -->
+    <div class="lightbox-overlay" id="lightbox">
+        <span class="lightbox-close" id="lightboxClose">&times;</span>
+        <img src="" alt="Foto completa" id="lightboxImg">
+    </div>
+
+    <script>
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+        }
+
+        document.getElementById('lightboxClose').addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeLightbox();
+        });
+        lightbox.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (e.target === lightbox) closeLightbox();
+        });
+
+        // Cualquier foto de producto (suelta o dentro del carrusel deslizable)
+        // abre el lightbox sin interrumpir el scroll/swipe entre fotos.
+        document.querySelectorAll('.product-gallery img').forEach(img => {
+            img.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openLightbox(img.src);
+            });
+        });
+    </script>
 </body>
 </html>
