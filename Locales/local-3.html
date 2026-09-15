@@ -304,6 +304,41 @@
             .method-badge { font-size: 0.68rem; padding: 4px 10px; }
 
             .filter-pills .pill { font-size: 0.75rem; padding: 7px 12px; }
+
+            /* Tarjetas de producto en cuadrícula: que respiren en pantallas
+               angostas y no se compriman los botones/textos */
+            .product-card { padding: 10px; }
+            .product-details { font-size: 0.75rem; }
+        }
+
+        /* Indicador sutil de scroll horizontal sobre los filtros */
+        .swipe-indicator {
+            text-align: center; font-size: 0.72rem; color: var(--text-muted);
+            letter-spacing: 0.4px; margin-bottom: 8px; opacity: 0.8;
+        }
+
+        /* ============================================================
+           LIGHTBOX (ver foto en pantalla completa)
+           ============================================================ */
+        .slide-img { cursor: zoom-in; }
+        .lightbox-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 9999; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box;
+        }
+        .lightbox-overlay.active { display: flex; }
+        .lightbox-overlay img {
+            max-width: 100%; max-height: 80vh; border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+        /* Botón de cierre abajo al centro: lejos de la "X" del contenedor
+           principal del perfil para que no se empalmen */
+        .lightbox-close {
+            position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+            width: 46px; height: 46px; border-radius: 50%;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4);
+            color: #fff; font-size: 1.7rem; display: flex; align-items: center;
+            justify-content: center; cursor: pointer; line-height: 1;
         }
 
     </style>
@@ -355,6 +390,7 @@
             </section>
 
             <!-- SUB-PESTAÑAS (FILTROS INTERACTIVOS) -->
+            <div class="swipe-indicator">← Desliza para ver más →</div>
             <div class="filter-pills">
                 <div class="pill active" onclick="openFilter(event, 'filtro-todo')">Todo</div>
                 <div class="pill" onclick="openFilter(event, 'filtro-filas')">Nueva Colección (Filas)</div>
@@ -731,6 +767,12 @@
 
     </div>
 
+    <!-- Lightbox: ver foto completa en pantalla -->
+    <div class="lightbox-overlay" id="lightbox">
+        <span class="lightbox-close" id="lightboxClose">&times;</span>
+        <img src="" alt="Foto completa" id="lightboxImg">
+    </div>
+
     <script>
         function openTab(evt, tabName) {
             let tabcontent = document.getElementsByClassName("tab-content");
@@ -784,6 +826,37 @@
             let nextIndex = (currentIndex + direction + slides.length) % slides.length;
             slides[nextIndex].classList.add('active');
         }
+
+        // ---- LIGHTBOX: ver cualquier foto de producto en pantalla completa ----
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+        }
+
+        document.getElementById('lightboxClose').addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeLightbox();
+        });
+        lightbox.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (e.target === lightbox) closeLightbox();
+        });
+
+        // Cada foto de producto (suelta o dentro de un slide) abre el lightbox,
+        // sin interferir con los botones ❮ ❯ de cambio de variante.
+        document.querySelectorAll('.slide-img').forEach(img => {
+            img.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openLightbox(img.src);
+            });
+        });
     </script>
 
 </body>
